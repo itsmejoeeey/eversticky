@@ -24,7 +24,7 @@ HEADERS += \
     misc.hpp \
     cache.hpp \
     note_controller.hpp \
-    ui/tray_ui.h
+    ui/tray_ui.hpp
 
 DISTFILES += \
     style/note_stylesheet.qss \

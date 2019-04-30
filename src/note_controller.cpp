@@ -17,7 +17,7 @@
 #include "misc.hpp"
 #include "note.hpp"
 #include "ui/note_ui.hpp"
-#include "ui/tray_ui.h"
+#include "ui/tray_ui.hpp"
 // Other libs
 #include <QEverCloudOAuth.h>
 

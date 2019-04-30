@@ -1,4 +1,4 @@
-#include "tray_ui.h"
+#include "tray_ui.hpp"
 
 // QT Libs
 #include <QCoreApplication>
