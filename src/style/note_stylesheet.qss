@@ -1,0 +1,32 @@
+/* HEADER */
+QToolBar {
+    background-color: #fedd51;
+}
+
+/* HEADER BUTTON TEXT */
+QToolButton {
+    color:#000000;
+}
+
+/* BODY */
+QTextEdit,QPlainTextEdit {
+    background-color: #ffec8e;
+    border: 0px;
+    color: #000000;
+    padding: 10px;
+}
+
+QPlainTextEdit#title_editor {
+    font-size: 11pt;
+    font-weight: bold;
+    padding:0px;
+}
+
+QFrame#line {
+    margin-right: 100px;
+}
+
+/* FOOTER */
+QWidget#NoteDialog {
+    background-color: #ffec8e;
+}

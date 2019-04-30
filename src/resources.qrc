@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icon/icon.ico</file>
+        <file>style/note_stylesheet.qss</file>
+    </qresource>
+</RCC>
