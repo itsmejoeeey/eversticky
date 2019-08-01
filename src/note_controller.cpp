@@ -103,9 +103,9 @@ bool NoteController::buttonClicked() {
         //TODO Check auth token still valid
     } else {
         // Test OAuth
-        qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString("joejoe31b"),
-                                   QString::fromStdString("7ecd76a10fe21f37"),
-                                   QString::fromStdString("sandbox.evernote.com"));
+        qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY),
+                                   QString::fromStdString(API_SECRET),
+                                   QString::fromStdString(API_HOST));
         dialog.setWindowTitle("Log in to Evernote");
         if (dialog.exec() != QDialog::Accepted) {
             // OAuth login failed

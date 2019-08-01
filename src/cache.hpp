@@ -3,7 +3,7 @@
 
 #include <QSqlDatabase>
 
-#include "QEverCloud.h"
+#include <QEverCloud.h>
 #include "note.hpp"
 
 struct queueItem {

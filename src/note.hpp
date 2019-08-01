@@ -1,7 +1,7 @@
 #ifndef NOTE_H
 #define NOTE_H
 
-#include "QEverCloud.h"
+#include <QEverCloud.h>
 
 class Note
 {
