@@ -40,6 +40,7 @@ Feel free to tackle one and make a PR ;))
 - [ ] Provide a settings pane that allows the user to set sync interval and 'start on startup' state
 - [ ] Implement more robust handling of note formatting when syncing to/from Evernote. Currently unexpected behaviour (such as inserting numerous newlines) is experienced when non-plain text styles are in use.
 - [ ] Ensure it is impossible for the code to overflow
+- [ ] Support for Windows/Mac OSX
 
 ## Bugs
 This project is still in its early days and bugs are expected (some are known above in the TODO section). Don't hesitate to open an issue if you encounter some unexpected behaviour.
