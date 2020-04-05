@@ -68,10 +68,10 @@ void TrayUI::createIconMenu(QPoint point) {
 }
 
 void TrayUI::loginAction() {
-    if(parent->buttonClicked()) {
+    if(parent->authenticate()) {
         parent->state = "AUTHORIZED";
-        parent->button2Clicked();
-        parent->button3Clicked();
+        parent->getNotebookGUID();
+        parent->showNotes();
     }
 }
 
@@ -80,7 +80,7 @@ void TrayUI::createAction() {
 }
 
 void TrayUI::syncAction() {
-    parent->button4Clicked();
+    parent->syncChanges();
 }
 
 void TrayUI::foregroundAction() {

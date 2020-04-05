@@ -3,8 +3,6 @@
 
 #include <iostream>
 
-
-
 namespace misc {
     std::string random_string( size_t length );
 }

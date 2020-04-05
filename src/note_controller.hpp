@@ -21,7 +21,6 @@ public:
     NoteUI* createNote();
     NoteUI* createNote(Note *note);
     NoteUI* createNote(Note* note_model, noteItem size);
-    void syncChanges();
     void syncFromServer();
     void syncAllNoteModels();
     QString getUsername();
@@ -30,12 +29,13 @@ public:
     void bringAllToFront();
     void updateNoteDimensions(qevercloud::Guid guid, int x, int y, int width, int height);
 
+    void logoutPrepare();
     void logout();
 public slots:
-    bool buttonClicked();
-    void button2Clicked();
-    void button3Clicked();
-    void button4Clicked();
+    bool authenticate();
+    void getNotebookGUID();
+    void showNotes();
+    void syncChanges();
     void periodicUpdate();
 private:
     std::vector<NoteUI*> notes;

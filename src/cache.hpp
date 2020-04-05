@@ -25,26 +25,22 @@ public:
     Cache();
     ~Cache();
 
-    void insertSyncTable(Note note);
-    void insertQueueTable(Note note);
-    void deleteQueueTable(Note note);
-
     void emptySyncTable();
-    void emptyQueueTable();
-
+    void insertSyncTable(Note note);
+    Note retrieveFromSyncTable(qevercloud::Guid guid);
     std::vector<Note> retrieveAllFromSyncTable();
-    std::vector<queueItem> retrieveAllFromQueueTable();
 
+    void deleteQueueTable(Note note);
+    void deleteFromQueueTable(int id);
+    void emptyQueueTable();
+    void insertQueueTable(Note note);
+    queueItem retrieveFromQueueTable(qevercloud::Guid guid);
+    std::vector<queueItem> retrieveAllFromQueueTable();
     std::vector<queueItem> retrieveNewFromQueueTable();
 
-    Note retrieveFromSyncTable(qevercloud::Guid guid);
-    queueItem retrieveFromQueueTable(qevercloud::Guid guid);
-
-    void deleteFromQueueTable(int id);
-
+    void deleteFromNotesTable(qevercloud::Guid guid);
     void insertNotesTable(QString guid, int screens, int res_x, int res_y, int pos_x, int pos_y, int size_x, int size_y);
     noteItem retrieveFromNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y);
-    void deleteFromNotesTable(qevercloud::Guid guid);
 
     void deleteDatabase();
 private:

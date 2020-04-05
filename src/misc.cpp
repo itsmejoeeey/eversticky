@@ -3,7 +3,6 @@
 // Standard libs
 #include <algorithm>
 
-
 namespace misc {
     std::string random_string( size_t length )
     {

@@ -24,7 +24,6 @@ HeaderBlock::HeaderBlock(ContentTextEdit *parent, NoteUI *context) : QWidget(par
     this->setLayout(main_layout);
     //this->setStyleSheet("background-color:grey;");
 
-
     left_column_frame = new QWidget();
 
     left_column_layout = new QVBoxLayout();
@@ -36,25 +35,9 @@ HeaderBlock::HeaderBlock(ContentTextEdit *parent, NoteUI *context) : QWidget(par
     line->setFrameShape(QFrame::HLine);
     left_column_layout->addWidget(line);
 
-
-
     main_layout->addWidget(left_column_frame);
 
-    // Eventually add a favourite icon to the top right corner of the note
-    // Postponed for now :)
-    /*
-    QPixmap pic("/home/joey/Dropbox/Documents/Other/CurrentProjects/evernote_stickies/sign-check-icon.png");
-    QPushButton *imageLabel = new QPushButton(this);
-    imageLabel->setIcon(pic);
-    imageLabel->setFlat(true);
-    imageLabel->setFixedSize(50,50);
-    imageLabel->setIconSize(QSize(50,50));
-    main_layout->addWidget(imageLabel, 0, Qt::AlignTop | Qt::AlignRight);
-    */
-
     updateLeftColumnLayout();
-
-
 }
 
 void HeaderBlock::updateLeftColumnLayout() {
