@@ -12,18 +12,18 @@ class ContentTextEdit : public QTextEdit
 Q_OBJECT
 public:
     ContentTextEdit(int prefixLines, NoteUI *context);
-    void attachSameScroll(HeaderBlock *headerBlock);
-    void setTopPadding(int prefixLines);
+    //void attachSameScroll(HeaderBlock *headerBlock);
+    //void setTopPadding(int prefixLines);
     void setText(QString text);
     void clearText();
 private slots:
-    void scrollChanged(int newScrollPosition);
+    //void scrollChanged(int newScrollPosition);
     void textChanged();
 
 private:
     int prevLineLength;
     HeaderBlock *headerBlock;
-    void resizeEvent(QResizeEvent *event) override;
+    //void resizeEvent(QResizeEvent *event) override;
     int prefixLines;
     int lineHeight;
     int lineTopPadding;

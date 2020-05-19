@@ -19,7 +19,7 @@
 #include <X11/xpm.h>
 
 
-NoteUI::NoteUI(NoteController *parent, Note* note, noteItem size) : QWidget()
+NoteUI::NoteUI(NoteController *parent, Note* note, noteItem size) : QScrollArea()
 {
     this->initialized = false;
 
@@ -30,10 +30,10 @@ NoteUI::NoteUI(NoteController *parent, Note* note, noteItem size) : QWidget()
     setObjectName("NoteDialog");
 
     QFile File(":style/note_stylesheet.qss");
-     File.open(QFile::ReadOnly);
-     QString StyleSheet = QLatin1String(File.readAll());
+    File.open(QFile::ReadOnly);
+    QString StyleSheet = QLatin1String(File.readAll());
 
-     setStyleSheet(StyleSheet);
+    setStyleSheet(StyleSheet);
 
     resize(400,400);
 
@@ -67,9 +67,11 @@ NoteUI::NoteUI(NoteController *parent, Note* note, noteItem size) : QWidget()
     contentEdit = new ContentTextEdit(6, this);
     headerBlock = new HeaderBlock(contentEdit, this);
 
+    dockLayout->addWidget(headerBlock);
+
 
     dockLayout->addWidget(contentEdit);
-    contentEdit->attachSameScroll(headerBlock);
+    //contentEdit->attachSameScroll(headerBlock);
 
     QHBoxLayout *gripLayout = new QHBoxLayout();
 
@@ -215,6 +217,7 @@ void NoteUI::moveEvent(QMoveEvent *event) {
 }
 
 void NoteUI::resizeEvent(QResizeEvent *event) {
+    QScrollArea::resizeEvent(event);
     // Ensured initialized to prevent null GUID
     if(initialized) {
         int newWidth = event->size().width();

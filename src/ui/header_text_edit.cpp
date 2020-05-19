@@ -12,6 +12,7 @@ HeaderTextEdit::HeaderTextEdit(QWidget *parent, HeaderBlock *parentController) :
     this->parent = parentController;
     this->installEventFilter(this);
     this->setObjectName("title_editor");
+    this->setStyleSheet("border: 1px solid red");
     this->setFixedHeight(50);
 
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -38,7 +39,7 @@ void HeaderTextEdit::textChanged() {
 
     this->setFixedHeight(height + 15);
     this->updateGeometry();
-    parent->updateLeftColumnLayout();
+    //parent->updateLeftColumnLayout();
     parent->textChanged();
 }
 
@@ -60,10 +61,12 @@ void HeaderTextEdit::keyPressEvent(QKeyEvent *e) {
     QPlainTextEdit::keyPressEvent(e);
 }
 
+
 void HeaderTextEdit::resizeEvent(QResizeEvent *event) {
     QPlainTextEdit::resizeEvent(event);
     textChanged();
 }
+
 
 void HeaderTextEdit::setText(QString text) {
     this->clear();

@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QMainWindow>
 #include <QTextEdit>
+#include <QScrollArea>
 
 #include "note.hpp"
 #include "cache.hpp"
@@ -14,7 +15,7 @@
 
 class NoteController;
 
-class NoteUI : public QWidget
+class NoteUI : public QScrollArea
 {
 Q_OBJECT
 public:

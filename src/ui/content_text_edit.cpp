@@ -18,10 +18,11 @@ ContentTextEdit::ContentTextEdit(int prefixLines, NoteUI *context) : QTextEdit()
     this->setObjectName("content_editor");
     this->setAcceptDrops(true);
     this->parent = context;
+    //this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     this->prefixLines = prefixLines;
 
-    connect(this->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(scrollChanged(int)));
+    //connect(this->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(scrollChanged(int)));
     connect(this, SIGNAL(textChanged()), this, SLOT(textChanged()));
 
     prevLineLength = this->document()->blockCount();
@@ -30,10 +31,15 @@ ContentTextEdit::ContentTextEdit(int prefixLines, NoteUI *context) : QTextEdit()
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     this->setAcceptRichText(false);
 
-    setTopPadding(1000);
+    //this->setMinimumHeight(1000);
+    //this->resize(QSize(this->width(),1000));
+    //this->setBaseSize(1000,1000);
+
+    //setTopPadding(1000);
 
 }
 
+/*
 void ContentTextEdit::attachSameScroll(HeaderBlock *headerBlock) {
     this->headerBlock = headerBlock;
 
@@ -46,7 +52,6 @@ void ContentTextEdit::scrollChanged(int newScrollPosition) {
     }
 
 }
-
 
 void ContentTextEdit::resizeEvent(QResizeEvent *event) {
     QTextEdit::resizeEvent(event);
@@ -63,13 +68,14 @@ void ContentTextEdit::setTopPadding(int topPadding) {
     this->document()->rootFrame()->setFrameFormat(format);;
 
 }
+*/
 
 void ContentTextEdit::setText(QString text) {
     textSet = false;
     this->clear();
     this->setPlainText(text);
 
-    setTopPadding(this->headerBlock->getHeight());
+    //setTopPadding(this->headerBlock->getHeight());
 
     textSet = true;
 }

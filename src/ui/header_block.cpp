@@ -19,8 +19,9 @@ HeaderBlock::HeaderBlock(ContentTextEdit *parent, NoteUI *context) : QWidget(par
     this->parent = parent;
     this->context = context;
     this->move(0, 0);
+    this->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
 
-    main_layout = new QHBoxLayout();
+    main_layout = new QVBoxLayout();
     this->setLayout(main_layout);
     //this->setStyleSheet("background-color:grey;");
 
@@ -28,37 +29,43 @@ HeaderBlock::HeaderBlock(ContentTextEdit *parent, NoteUI *context) : QWidget(par
 
     left_column_layout = new QVBoxLayout();
     left_column_frame->setLayout(left_column_layout);
-    header_text = new HeaderTextEdit(left_column_frame, this);
-    left_column_layout->addWidget(header_text);
-    QFrame *line = new QFrame(left_column_frame);
+    header_text = new HeaderTextEdit(this, this);
+    main_layout->addWidget(header_text);
+    QFrame *line = new QFrame(this);
     line->setObjectName("line");
     line->setFrameShape(QFrame::HLine);
-    left_column_layout->addWidget(line);
+    main_layout->addWidget(line);
 
-    main_layout->addWidget(left_column_frame);
+    //left_column_layout->addStretch();
+    //left_column_layout->setSpacing(0);
 
-    updateLeftColumnLayout();
+    //main_layout->addWidget(left_column_frame);
+
+    //updateLeftColumnLayout();
 }
 
+/*
 void HeaderBlock::updateLeftColumnLayout() {
     left_column_layout->update();
     left_column_frame->updateGeometry();
     this->adjustSize();
 
     main_layout->update();
-    this->parent->setTopPadding(this->height());
+    //this->parent->setTopPadding(this->height());
 }
-
+*/
 
 void HeaderBlock::setScrollPosition(int newScrollPosition) {
     int scrollPosition = -1 * newScrollPosition;
     this->move(0, scrollPosition);
 }
 
+/*
 void HeaderBlock::resizeEvent(QResizeEvent *event) {
     int parentWidth = parent->size().width();
     this->setFixedWidth(parentWidth - 20);
 }
+*/
 
 int HeaderBlock::getHeight() {
     return this->size().height();
