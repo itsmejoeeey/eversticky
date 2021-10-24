@@ -181,6 +181,8 @@ void NoteController::periodicUpdate()
 
 void NoteController::logout()
 {
+    state = tAuthState::UNAUTHORISED;
+
     Settings::deleteSessionSettings();
     Cache::deleteDatabase();
 
