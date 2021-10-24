@@ -15,29 +15,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTESYNCCONTROLLER_H
+#define NOTESYNCCONTROLLER_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
+typedef enum tAuthState {
+    UNAUTHORISED,
+    AUTHORISED
+} tAuthState;
 
-#include "note_controller.h"
-
-
-int main(int argc, char **argv)
+class NoteSyncController
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+public:
+    NoteSyncController();
+};
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
-
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
-
-    return app.exec();
-}
-
-
+#endif // NOTESYNCCONTROLLER_H

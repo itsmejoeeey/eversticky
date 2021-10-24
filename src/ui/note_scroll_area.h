@@ -15,29 +15,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTESCROLLAREA_H
+#define NOTESCROLLAREA_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <QScrollArea>
+#include <QVBoxLayout>
 
 
-int main(int argc, char **argv)
+class NoteWebview;
+class NoteHeader;
+class NoteWidget;
+
+class NoteScrollArea : public QScrollArea
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    NoteScrollArea(QWidget *context);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+    void addWidget(QWidget *widget);
 
-    return app.exec();
+public slots:
+    void scrollNote(int dx, int dy);
+
+signals:
+    void noteScrollChanged(int x, int y);
+
+private:
+    QVBoxLayout *dockLayout;
 }
+;
 
-
+#endif // NOTESCROLLAREA_H

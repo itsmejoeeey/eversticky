@@ -1,45 +1,76 @@
-﻿#include "cache.hpp"
+﻿/*
+ * This file is part of the EverSticky project (https://github.com/itsmejoeeey/eversticky).
+ * Copyright (c) 2021 Joey Miller.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-// Standard libs
+#include "cache.h"
+
 #include <iostream>
-// QT libs
+
 #include <QFile>
 #include <QSqlDriver>
-#include <QSqlQuery>
 #include <QSqlError>
+#include <QSqlQuery>
 #include <QStandardPaths>
 
 
-Cache::Cache()
+QSqlDatabase Cache::openDatabase()
 {
-    // Set inital flag to false
-    dbConnected = false;
+    // Return database connection immediately if it already exists
+    if(QSqlDatabase::database("CacheDatabase").isOpen()) {
+        return QSqlDatabase::database("CacheDatabase");
+    }
 
     // Use SQLite format for db
     const QString DRIVER("QSQLITE");
-    // Get os-specific app-data directory for db storage
-    cacheLocation = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation).append("/cache.db");
 
     if(QSqlDatabase::isDriverAvailable(DRIVER)) {
         QSqlDatabase db = QSqlDatabase::addDatabase(DRIVER, "CacheDatabase");
-        db.setDatabaseName(cacheLocation);
-        dbConnected = true;
+        QString databasePath = getDatabasePath();
+        db.setDatabaseName(databasePath);
         db.open();
 
-        //if(!QFile::exists(dataDirectory)) {
-            // Create tables if database doesn't exist
-            QSqlQuery create_sync_table("CREATE TABLE sync (guid TEXT PRIMARY KEY, usn INTEGER, title TEXT, content TEXT)", db);
-            QSqlQuery create_queue_table("CREATE TABLE queue (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, guid TEXT, usn INTEGER, title TEXT, content TEXT, cleared INTEGER)", db);
-            QSqlQuery create_notes_table("CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT, guid TEXT, screens INTEGER, res_x INTEGER, res_y INTEGER, pos_x INTEGER, pos_y INTEGER, size_x INTEGER, size_y INTEGER)", db);
-        //}
+        // Create tables if database doesn't exist
+        QSqlQuery("CREATE TABLE sync (guid TEXT PRIMARY KEY, usn INTEGER, title TEXT, content TEXT)", db);
+        QSqlQuery("CREATE TABLE queue (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, guid TEXT, usn INTEGER, title TEXT, content TEXT, cleared INTEGER)", db);
+        QSqlQuery("CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT, guid TEXT, screens INTEGER, res_x INTEGER, res_y INTEGER,"
+                  "pos_x INTEGER, pos_y INTEGER, size_x INTEGER, size_y INTEGER, scroll_x INTEGER, scroll_y INTEGER, colour INTEGER, zindex INTEGER)", db);
 
-        db.close();
-
+        return db;
     }
 }
 
-void Cache::insertSyncTable(Note note) {
+QString Cache::getDatabasePath()
+{
+    // Get os-specific app-data directory for db storage
+    return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation).append("/cache.db");
+}
+
+void Cache::closeDatabase() {
     QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+
+    if(db.isOpen())
+        db.close();
+
+    if(QSqlDatabase::database("CacheDatabase").isValid())
+        QSqlDatabase::removeDatabase("CacheDatabase");
+}
+
+void Cache::insertSyncTable(Note note)
+{
+    QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
     query.prepare("INSERT INTO sync (guid, usn, title, content) "
                   "VALUES (:guid, :usn, :title, :content)");
@@ -51,8 +82,9 @@ void Cache::insertSyncTable(Note note) {
     query.exec();
 }
 
-Note Cache::retrieveFromSyncTable(qevercloud::Guid guid) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+Note Cache::retrieveFromSyncTable(qevercloud::Guid guid)
+{
+    QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
     query.prepare("SELECT guid, usn, title, content FROM sync WHERE guid == :guid");
     query.bindValue(":guid", guid.toUtf8().constData());
@@ -63,8 +95,9 @@ Note Cache::retrieveFromSyncTable(qevercloud::Guid guid) {
     return Note(query.value(0).toString(), query.value(1).toInt(), query.value(2).toString(), query.value(3).toString());
 }
 
-queueItem Cache::retrieveFromQueueTable(qevercloud::Guid guid) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+queueItem Cache::retrieveFromQueueTable(qevercloud::Guid guid)
+{
+    QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
     query.prepare("SELECT id, type, guid, usn, title, content FROM queue WHERE guid == :guid");
     query.bindValue(":guid", guid.toUtf8().constData());
@@ -85,8 +118,9 @@ queueItem Cache::retrieveFromQueueTable(qevercloud::Guid guid) {
     }
 }
 
-std::vector<queueItem> Cache::retrieveNewFromQueueTable() {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+std::vector<queueItem> Cache::retrieveNewFromQueueTable()
+{
+    QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
     query.prepare("SELECT id, type, guid, usn, title, content FROM queue WHERE type == :type");
     query.bindValue(":type", "CREATE");
@@ -105,8 +139,9 @@ std::vector<queueItem> Cache::retrieveNewFromQueueTable() {
 }
 
 
-std::vector<Note> Cache::retrieveAllFromSyncTable() {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+std::vector<Note> Cache::retrieveAllFromSyncTable()
+{
+    QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
     query.prepare("SELECT guid, usn, title, content FROM sync");
     query.exec();
@@ -119,9 +154,9 @@ std::vector<Note> Cache::retrieveAllFromSyncTable() {
     return results;
 }
 
-void Cache::insertQueueTable(Note note) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
-    //db.open();
+void Cache::insertQueueTable(Note note)
+{
+    QSqlDatabase db = openDatabase();
 
     QString type;
     QSqlQuery query1(db);
@@ -171,8 +206,9 @@ void Cache::insertQueueTable(Note note) {
     //db.close();
 }
 
-std::vector<queueItem> Cache::retrieveAllFromQueueTable() {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+std::vector<queueItem> Cache::retrieveAllFromQueueTable()
+{
+    QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
     query.prepare("SELECT id, type, guid, usn, title, content FROM queue");
     query.exec();
@@ -189,27 +225,32 @@ std::vector<queueItem> Cache::retrieveAllFromQueueTable() {
     return results;
 }
 
-void Cache::deleteQueueTable(Note note) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+void Cache::deleteQueueTable(Note note)
+{
+    QSqlDatabase db = openDatabase();
 
     QSqlQuery query1(db);
     query1.prepare("DELETE FROM queue WHERE guid=:guid");
     query1.bindValue(":guid", note.guid.toUtf8().constData());
     query1.exec();
 
-    QSqlQuery query2(db);
-    query2.prepare("INSERT INTO queue (type, guid, title, content, cleared) "
-                  "VALUES (:type, :guid, NULL, NULL, :cleared)");
-    query2.bindValue(":type", "DELETE");
-    query2.bindValue(":guid", note.guid.toUtf8().constData());
-    query2.bindValue(":cleared", 0);
-    query2.exec();
-
-
+    // Only insert DELETE command into queue if the note has previously
+    // been synced with Evernote.
+    if(!note.guid.startsWith("LOCAL-"))
+    {
+        QSqlQuery query2(db);
+        query2.prepare("INSERT INTO queue (type, guid, title, content, cleared) "
+                       "VALUES (:type, :guid, NULL, NULL, :cleared)");
+        query2.bindValue(":type", "DELETE");
+        query2.bindValue(":guid", note.guid.toUtf8().constData());
+        query2.bindValue(":cleared", 0);
+        query2.exec();
+    }
 }
 
-void Cache::deleteFromQueueTable(int id) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+void Cache::deleteFromQueueTable(int id)
+{
+    QSqlDatabase db = openDatabase();
 
     QSqlQuery query(db);
     query.prepare("DELETE FROM queue WHERE id=:id");
@@ -217,16 +258,18 @@ void Cache::deleteFromQueueTable(int id) {
     query.exec();
 }
 
-void Cache::emptySyncTable() {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+void Cache::emptySyncTable()
+{
+    QSqlDatabase db = openDatabase();
 
     QSqlQuery query(db);
     query.prepare("DELETE FROM sync");
     query.exec();
 }
 
-void Cache::emptyQueueTable() {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+void Cache::emptyQueueTable()
+{
+    QSqlDatabase db = openDatabase();
 
     QSqlQuery query1(db);
     query1.prepare("DELETE FROM queue");
@@ -237,9 +280,9 @@ void Cache::emptyQueueTable() {
     query2.exec();
 }
 
-void Cache::insertNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y, int pos_x, int pos_y, int size_x, int size_y) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
-    //db.open();
+void Cache::insertNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y, int pos_x, int pos_y, int size_x, int size_y)
+{
+    QSqlDatabase db = openDatabase();
 
     QSqlQuery query1(db);
     query1.prepare("SELECT id FROM notes WHERE guid == :guid AND screens == :screens AND res_x == :res_x AND res_y == :res_y");
@@ -254,7 +297,8 @@ void Cache::insertNotesTable(qevercloud::Guid guid, int screens, int res_x, int 
         int rowId = query1.value(0).toInt();
 
         QSqlQuery query2(db);
-        query2.prepare("UPDATE notes SET guid = :guid, screens = :screens, res_x = :res_x, res_y = :res_y, pos_x = :pos_x, pos_y = :pos_y, size_x = :size_x, size_y = :size_y WHERE id=:id");
+        query2.prepare("UPDATE notes SET guid = :guid, screens = :screens, res_x = :res_x, res_y = :res_y, pos_x = :pos_x, pos_y = :pos_y,"
+                       "size_x = :size_x, size_y = :size_y, scroll_x = :scroll_x, scroll_y = :scroll_y WHERE id=:id");
         query2.bindValue(":guid", guid.toUtf8().constData());
         query2.bindValue(":screens", screens);
         query2.bindValue(":res_x", res_x);
@@ -268,8 +312,8 @@ void Cache::insertNotesTable(qevercloud::Guid guid, int screens, int res_x, int 
 
     } else {
         QSqlQuery query2(db);
-        query2.prepare("INSERT INTO notes (guid, screens, res_x, res_y, pos_x, pos_y, size_x, size_y) "
-                      "VALUES (:guid, :screens, :res_x, :res_y, :pos_x, :pos_y, :size_x, :size_y)");
+        query2.prepare("INSERT INTO notes (guid, screens, res_x, res_y, pos_x, pos_y, size_x, size_y, scroll_x, scroll_y) "
+                      "VALUES (:guid, :screens, :res_x, :res_y, :pos_x, :pos_y, :size_x, :size_y, :scroll_x, :scroll_y)");
         query2.bindValue(":guid", guid.toUtf8().constData());
         query2.bindValue(":screens", screens);
         query2.bindValue(":res_x", res_x);
@@ -282,8 +326,10 @@ void Cache::insertNotesTable(qevercloud::Guid guid, int screens, int res_x, int 
     }
 }
 
-noteItem Cache::retrieveFromNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+noteItem Cache::retrieveFromNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y)
+{
+    QSqlDatabase db = openDatabase();
+
     QSqlQuery query(db);
     query.prepare("SELECT pos_x, pos_y, size_x, size_y FROM notes WHERE guid == :guid AND screens == :screens AND res_x == :res_x AND res_y == :res_y");
     query.bindValue(":guid", guid.toUtf8().constData());
@@ -292,18 +338,19 @@ noteItem Cache::retrieveFromNotesTable(qevercloud::Guid guid, int screens, int r
     query.bindValue(":res_y", res_y);
     query.exec();
 
-    query.next();
-
     noteItem item = noteItem();
-    item.pos_x = query.value(0).toInt();
-    item.pos_y = query.value(1).toInt();
-    item.size_x = query.value(2).toInt();
-    item.size_y = query.value(3).toInt();
+    if(query.next()) {
+        item.pos_x = query.value(0).toInt();
+        item.pos_y = query.value(1).toInt();
+        item.size_x = query.value(2).toInt();
+        item.size_y = query.value(3).toInt();
+    }
     return item;
 }
 
-void Cache::deleteFromNotesTable(qevercloud::Guid guid) {
-    QSqlDatabase db = QSqlDatabase::database("CacheDatabase");
+void Cache::deleteFromNotesTable(qevercloud::Guid guid)
+{
+    QSqlDatabase db = openDatabase();
 
     QSqlQuery query(db);
     query.prepare("DELETE FROM notes WHERE guid=:guid");
@@ -311,18 +358,15 @@ void Cache::deleteFromNotesTable(qevercloud::Guid guid) {
     query.exec();
 }
 
-void Cache::deleteDatabase() {
-    if(dbConnected) {
-        dbConnected = false;
+void Cache::deleteDatabase()
+{
+    // Return immediately if the database connection already exists
+    if(QSqlDatabase::database("CacheDatabase").isValid())
+    {
         QSqlDatabase::removeDatabase("CacheDatabase");
-    };
-    QFile(this->cacheLocation).remove();
-}
 
-Cache::~Cache() {
-    // Remove db on destructor call
-    if(dbConnected) {
-        dbConnected = false;
-        QSqlDatabase::removeDatabase("CacheDatabase");
-    }
+        QString databasePath = getDatabasePath();
+        QFile(databasePath).remove();
+    };
+
 }

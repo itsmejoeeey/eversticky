@@ -15,29 +15,37 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef TRAY_ICON_H
+#define TRAY_ICON_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
+#include <QSystemTrayIcon>
 
 #include "note_controller.h"
 
 
-int main(int argc, char **argv)
+class TrayIcon : public QSystemTrayIcon
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    TrayIcon(NoteController* parent);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+private slots:
+    void trayEvent(QSystemTrayIcon::ActivationReason reason);
 
-    return app.exec();
-}
+    bool checkUpdateAvailable();
 
+    void loginAction();
+    void createAction();
+    void foregroundAction();
+    void syncAction();
+    void settingsAction();
+    void exitAction();
+    void logout();
 
+private:
+    NoteController *parent;
+    void createIconMenu(QPoint point);
+};
+
+#endif // TRAY_ICON_H

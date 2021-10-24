@@ -15,29 +15,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include "misc_helpers.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <algorithm>
 
 
-int main(int argc, char **argv)
+namespace helpers
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+    namespace misc
+    {
+        QString random_hex_string(unsigned int length)
+        {
+            const char charset[] = "0123456789"
+                                   "abcdef";
+            const unsigned char maxIndex = (sizeof(charset) - 1);
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+            std::string str(length,0);
+            std::generate_n(str.begin(), length, [&]() -> char {
+                return charset[rand() % maxIndex];
+            });
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
-
-    return app.exec();
-}
-
-
+            return QString::fromStdString(str);
+        }
+    } // namespace misc
+} // namespace helpers

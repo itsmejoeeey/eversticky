@@ -15,29 +15,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTE_H
+#define NOTE_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
+#include <QEverCloud.h>
 
-#include "note_controller.h"
-
-
-int main(int argc, char **argv)
+class Note
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+public:
+    Note(qevercloud::Guid guid, int usn, QString title, QString content);
+    Note();
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+    qevercloud::Guid guid;
+    int usn;
+    QString title;
+    QString content;
+    bool changed;
+    bool new_note;
+};
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
-
-    return app.exec();
-}
-
-
+#endif // NOTE_H

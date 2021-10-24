@@ -1,0 +1,47 @@
+/*
+ * This file is part of the eversticky project (https://github.com/itsmejoeeey/eversticky).
+ * Copyright (c) 2021 Joey Miller.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+body {
+    /* Ensures that webview is not scrollable */
+    /* Scrolling should be handled by NoteScrollArea */
+    overflow: hidden;
+}
+
+input[type=checkbox] {
+    margin-right: 0.5em;
+}
+
+#en-note {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.unsupported {
+    align-items: center;
+    border: red 4px solid;
+    display: inline;
+    height: 7em;
+    text-align: center;
+    width: 7em;
+
+    /* Display cross as image */
+    background-image: url("data:image/svg+xml, %3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg id='layer1' transform='translate(0 -1036.4)'%3E%3Cpath id='rect3809' style='fill:%23ffffff' d='m5.5312 1039.8-2.125 2.125 2.4687 2.4688-2.4687 2.4687 2.125 2.125 2.4688-2.4687 2.4688 2.4687 2.125-2.125-2.4688-2.4687 2.4688-2.4688-2.125-2.125l-2.469 2.4-2.4688-2.4z' /%3E%3Cpath id='rect3801' style='stroke-linejoin:round;stroke:%23bf030f;stroke-width:.25;fill:%23e2080c' d='m5.5 2-3.5 3.5v5l3.5 3.5h5l3.5-3.5v-5l-3.5-3.5h-5zm0.0312 1.4062 2.4688 2.4688l2.4688-2.4688 2.125 2.125-2.469 2.4688 2.4688 2.4688-2.125 2.125-2.469-2.469-2.4688 2.469-2.125-2.125 2.4688-2.469-2.4688-2.4688 2.125-2.125z' transform='translate(0 1036.4)' /%3E%3C/g%3E%3C/svg%3E%0A");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 4em;
+}

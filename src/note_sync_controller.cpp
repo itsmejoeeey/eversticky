@@ -15,29 +15,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include "note_sync_controller.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
-
-
-int main(int argc, char **argv)
+NoteSyncController::NoteSyncController()
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
-
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
-
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
-
-    return app.exec();
+    // TODO
 }
-
-

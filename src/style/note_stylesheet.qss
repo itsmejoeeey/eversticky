@@ -1,32 +1,111 @@
-/* HEADER */
-QToolBar {
+/*
+ * This file is part of the eversticky project (https://github.com/itsmejoeeey/eversticky).
+ * Copyright (c) 2021 Joey Miller.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+/*
+ *  Main widgets
+ */
+
+#NoteTitleBar
+{
+    /* Note titlebar darker colour */
     background-color: #fedd51;
 }
 
-/* HEADER BUTTON TEXT */
-QToolButton {
+#NoteContainer
+{
+    border: 1px solid grey;
+}
+
+#NoteContainer,
+QScrollBar
+{
+    /* Main note background colour */
+    background-color: #ffec8e;
+}
+
+#NoteContainer QSizeGrip
+{
+    image: url(:/icon/sizegripicon.svg);
+    height: 24px;
+    width: 24px;
+}
+
+
+/*
+ *  Widget styles
+ */
+
+#NoteTitleBar QToolButton
+{
+    background: transparent;
+    border: transparent;
+    padding: 5px;
     color:#000000;
 }
 
-/* BODY */
-QTextEdit,QPlainTextEdit {
-    background-color: #ffec8e;
+#NoteTitleBar QToolButton:hover
+{
+    border: 1px solid grey;
+    border-radius: 4px;
+}
+
+#NoteHeader #NoteHeaderTextEdit
+{
+    background: transparent;
     border: 0px;
     color: #000000;
-    padding: 10px;
-}
-
-QPlainTextEdit#title_editor {
     font-size: 11pt;
     font-weight: bold;
-    padding:0px;
 }
 
-QFrame#line {
+#NoteHeader #NoteHeaderLine
+{
     margin-right: 100px;
 }
 
-/* FOOTER */
-QWidget#NoteDialog {
-    background-color: #ffec8e;
+#NoteScrollArea
+{
+    border-style: none;
+}
+
+
+/*
+ *  Global scrollbar style
+ */
+
+QScrollBar:vertical
+{
+    width:18px;
+    padding: 5px 5px 5px 5px;
+}
+
+QScrollBar::handle:vertical
+{
+    background: grey;
+    border-radius: 4px;
+}
+
+QScrollBar::add-line:vertical
+{
+    height: 0px;
+}
+
+QScrollBar::sub-line:vertical
+{
+    height: 0 px;
 }

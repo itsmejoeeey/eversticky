@@ -15,29 +15,41 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include "js_interface.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include "note_webview.h"
 
 
-int main(int argc, char **argv)
+JsInterface::JsInterface(NoteWebview* parent) : QObject(), m_Parent(parent)
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
-
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
-
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
-
-    return app.exec();
 }
 
+void JsInterface::log(const QString& str) const
+{
+    qInfo() << "Message from js: " << str;
+}
 
+void JsInterface::domChanged(QString newText)
+{
+    emit textUpdated(newText);
+}
+
+void JsInterface::domHeightResized(int newDomHeight)
+{
+    emit pageHeightUpdated(newDomHeight);
+}
+
+void JsInterface::domNewlineInserted(int cursorY)
+{
+    emit ensureWebviewCaretVisible(cursorY);
+}
+
+void JsInterface::domLoaded()
+{
+    emit pageLoaded();
+}
+
+void JsInterface::setInnerHtml(QString text)
+{
+    emit updateInnerHtml(text);
+}

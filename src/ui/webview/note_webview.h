@@ -15,29 +15,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTE_WEBVIEW_H
+#define NOTE_WEBVIEW_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
+#include <QWebEngineView>
 
-#include "note_controller.h"
+#include "js_interface.h"
+#include "ui/note_header.h"
 
 
-int main(int argc, char **argv)
+class NoteWebview : public QWebEngineView
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    NoteWebview(QWidget *context);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+    void clearText();
+    void setText(QString text);
+    QString getText();
 
-    return app.exec();
-}
+public slots:
+    void updatePageHeight(int newHeight);
 
+signals:
+    void textUpdated(QString newText);
+    void initialNoteLoad();
+    void scrollEvent(int dx, int dy);
+    void ensureWebviewCaretVisible(int caretY);
+    void noteLoaded();
 
+private:
+    QWebChannel* channel;
+    JsInterface* jsInterface;
+
+    void openBlankPage();
+
+    void wheelEvent(QWheelEvent *event);
+};
+
+#endif // NOTE_WEBVIEW_H

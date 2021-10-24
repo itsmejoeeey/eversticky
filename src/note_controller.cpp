@@ -1,85 +1,92 @@
-#include "note_controller.hpp"
+/*
+ * This file is part of the EverSticky project (https://github.com/itsmejoeeey/eversticky).
+ * Copyright (c) 2021 Joey Miller.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-// Standard libs
+#include "note_controller.h"
+
 #include <iostream>
-// QT libs
+
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QDebug>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QStandardPaths>
-#include <QSystemTrayIcon>
-#include <QTextDocumentFragment>
 #include <QTimer>
-#include <QWebEngineProfile>
-// Project libs
-#include "misc.hpp"
-#include "note.hpp"
-#include "ui/note_ui.hpp"
-#include "ui/tray_ui.hpp"
-// Other libs
+
 #include <QEverCloudOAuth.h>
 
-#include <QDebug>
+#include "helpers/misc_helpers.h"
+#include "note.h"
+#include "note_formatter.h"
+#include "settings.h"
+#include "ui/note_widget.h"
+#include "ui/tray_icon.h"
 
 
-NoteController::NoteController(int screens, int screenWidth, int screenHeight) : QObject()
+NoteController::NoteController(int screens, int screenWidth, int screenHeight) : screens(screens), screenWidth(screenWidth), screenHeight(screenHeight), QObject(), state(tAuthState::UNAUTHORISED)
 {
-    this->screens = screens;
-    this->screenWidth = screenWidth;
-    this->screenHeight = screenHeight;
-    this->settingsFile = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation).append("/user_settings.ini");
+    new TrayIcon(this);
 
-    TrayUI *trayIcon = new TrayUI(this);
-
-    this->state = "UNAUTHORIZED";
     if(authenticate()) {
-        this->state = "AUTHORIZED";
         getNotebookGUID();
         showNotes();
     }
 
     QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
-    timer->start(210000);
+    connect(timer, &QTimer::timeout, this, &NoteController::periodicUpdate);
+    timer->setTimerType(Qt::VeryCoarseTimer);
+    // Set timer to user-defined duration. Convert from seconds to ms.
+    timer->start(Settings::getUserSetting("sync_interval").toInt() * 1000);
 }
 
-// Creating a new note to later be created in the users'
-// Evernote account
-NoteUI* NoteController::createNote() {
+// Creating a new note to later be created in the users' Evernote account
+NoteWidget* NoteController::createNote()
+{
     Note* note_model = new Note();
 
     // Create a random local GUID (due the fact this not has not been uploaded thus far)
-    // in the format 'LOCAL-XXXXXXXXXXXX-XXXXXXXXXXXX'
-    QString rand = QString::fromStdString("LOCAL-" + misc::random_string(12) + "-" + misc::random_string(12));
-    note_model->guid = rand;
+    //   in the format 'LOCAL-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+    // When the note has been uploaded, it will have a new GUID assigned by Evernote
+    note_model->guid = "LOCAL-" + helpers::misc::random_hex_string(8) + "-" +
+                                  helpers::misc::random_hex_string(4) + "-" +
+                                  helpers::misc::random_hex_string(4) + "-" +
+                                  helpers::misc::random_hex_string(4) + "-" +
+                                  helpers::misc::random_hex_string(12);
+    note_model->content = NoteFormatter::createEmptyENML();
 
-    // Add this note to a controller that manages the UI
-    NoteUI *note = new NoteUI(this, note_model, noteItem());
+    NoteWidget *note = new NoteWidget(this, note_model, noteItem());
     notes.push_back(note);
-
     noteCount++;
 
     return note;
 }
 
-// Create a new note where a note model instance (downloaded from
-// Evernote) is provided
-NoteUI* NoteController::createNote(Note* note_model) {
-   NoteUI *note = new NoteUI(this, note_model, noteItem());
+// Create a new note where a note model instance (downloaded from Evernote) is provided
+NoteWidget* NoteController::createNote(Note* note_model)
+{
+   NoteWidget *note = new NoteWidget(this, note_model, noteItem());
    notes.push_back(note);
-
    noteCount++;
 
    return note;
 }
-
-NoteUI* NoteController::createNote(Note* note_model, noteItem size) {
-   NoteUI *note = new NoteUI(this, note_model, size);
-
+NoteWidget* NoteController::createNote(Note* note_model, noteItem size)
+{
+   NoteWidget *note = new NoteWidget(this, note_model, size);
    notes.push_back(note);
-
    noteCount++;
 
    return note;
@@ -90,14 +97,15 @@ NoteUI* NoteController::createNote(Note* note_model, noteItem size) {
  * For testing purposes only
 */
 
-bool NoteController::authenticate() {
+bool NoteController::authenticate()
+{
     bool authenticated = false;
-    QSettings settings(settingsFile, QSettings::NativeFormat);
-    if(!(settings.value("auth_token").toString() == "" ||
-         settings.value("notestore_url").toString() == "" ||
-         settings.value("username").toString() == "" )) {
+
+    if(!(Settings::getSessionSetting("auth_token") == "" ||
+         Settings::getSessionSetting("notestore_url") == "" ||
+         Settings::getSessionSetting("username") == "" )) {
         try {
-            qevercloud::UserStore user_store(QString::fromStdString(API_HOST), settings.value("auth_token").toString());
+            qevercloud::UserStore user_store(QString::fromStdString(API_HOST), Settings::getSessionSetting("auth_token"));
             qevercloud::User user = user_store.getUser();
             authenticated = true;
         } catch(qevercloud::EDAMUserException) {
@@ -105,18 +113,17 @@ bool NoteController::authenticate() {
         } catch(qevercloud::EDAMSystemException) {
             logoutPrepare();
         }
-
     }
 
     if(!authenticated) {
         // Test OAuth
-        qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY),
-                                   QString::fromStdString(API_SECRET),
-                                   QString::fromStdString(API_HOST));
-        dialog.setWindowTitle("Log in to Evernote");
+        qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY), QString::fromStdString(API_SECRET), QString::fromStdString(API_HOST));
+        dialog.setWindowTitle("Log in to Evernote | eversticky");
         if (dialog.exec() != QDialog::Accepted) {
             // OAuth login failed
             QMessageBox::critical(0, "NotePoster", "Login failed.\n" + dialog.oauthError());
+
+            state = tAuthState::UNAUTHORISED;
             return false;
         }
 
@@ -127,29 +134,32 @@ bool NoteController::authenticate() {
         qevercloud::User user = user_store.getUser();
         QString username = user.username;
 
-        settings.setValue("auth_token", auth_token);
-        settings.setValue("notestore_url", notestore_url);
-        settings.setValue("username", username);
+        Settings::setSessionSetting("auth_token", auth_token);
+        Settings::setSessionSetting("notestore_url", notestore_url);
+        Settings::setSessionSetting("username", username);
     }
+
+    state = tAuthState::AUTHORISED;
+
     return true;
 }
 
-void NoteController::getNotebookGUID() {
-    QSettings settings(settingsFile, QSettings::NativeFormat);
-    qevercloud::NoteStore noteStore(settings.value("notestore_url").toString(), settings.value("auth_token").toString());
+void NoteController::getNotebookGUID()
+{
+    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
     QList<qevercloud::Notebook> notebooks = noteStore.listNotebooks();
 
     bool foundExistingNotebook = false;
     qevercloud::Guid notebookID;
 
+    qInfo() << "Found" << notebooks.size() << "notebooks in user account.";
     foreach(qevercloud::Notebook item, notebooks) {
         std::string itemTitle = item.name->toUtf8().constData();
-        qDebug() << item.name->toUtf8().constData();
-        if(itemTitle.compare("Sticky Notes") == 0) {
-
+        if(itemTitle.compare("Sticky Notes") == 0)
+        {
+            qInfo() << "Found existing 'Sticky Notes' notebook.";
             foundExistingNotebook = true;
             notebookID = item.guid;
-            qDebug() << "GUIID " << item.guid;
             break;
         }
     }
@@ -160,55 +170,56 @@ void NoteController::getNotebookGUID() {
         notebook.name = "Sticky Notes";
         notebook.defaultNotebook = false;
 
+        qWarning() << "No existing 'Sticky Notes' notebook found. Creating a new one.";
+
         qevercloud::Notebook createdNotebook = noteStore.createNotebook(notebook);
         notebookID = createdNotebook.guid;
     }
 
     notebookGUID = notebookID;
-
 }
 
-void NoteController::showNotes() {
+void NoteController::showNotes()
+{
     syncFromServer();
 
-    Cache cache;
-    std::vector<Note> sync_results = cache.retrieveAllFromSyncTable();
+    std::vector<Note> sync_results = Cache::retrieveAllFromSyncTable();
+    qInfo() << "Found" << sync_results.size() << "notes.";
     std::vector<Note>::iterator n = sync_results.begin();
     while(n != sync_results.end()) {
         Note note = *n;
-        queueItem item = cache.retrieveFromQueueTable(note.guid);
-        noteItem size = cache.retrieveFromNotesTable(note.guid, this->screens, this->screenWidth, this->screenHeight);
+        queueItem item = Cache::retrieveFromQueueTable(note.guid);
+        noteItem size = Cache::retrieveFromNotesTable(note.guid, this->screens, this->screenWidth, this->screenHeight);
 
         if(item.id == NULL && item.type == NULL) {
             // Not in queue
-            Note *pointer_note = new Note(note.guid, note.usn, note.title, note.content);
+            Note *pointer_note = new Note(note.guid, note.usn, note.title, NoteFormatter(note.content).standardiseInput());
             createNote(pointer_note, size);
         } else if(item.type == "UPDATE") {
-            Note *pointer_note = new Note(note.guid, note.usn, item.note.title, item.note.content);
+            Note *pointer_note = new Note(note.guid, note.usn, item.note.title, NoteFormatter(item.note.content).standardiseInput());
             createNote(pointer_note, size);
         }
         n++;
     }
 
     // Also open new notes in queue that haven't been synced yet
-    std::vector<queueItem> new_notes = cache.retrieveNewFromQueueTable();
+    std::vector<queueItem> new_notes = Cache::retrieveNewFromQueueTable();
     std::vector<queueItem>::iterator p = new_notes.begin();
 
     while(p != new_notes.end()) {
         queueItem item = *p;
-        Note *pointer_note = new Note(item.note.guid, item.note.usn, item.note.title, item.note.content);
+        Note *pointer_note = new Note(item.note.guid, item.note.usn, item.note.title, NoteFormatter(item.note.content).standardiseInput());
         createNote(pointer_note);
         p++;
     }
 
 }
 
-void NoteController::syncChanges() {
-    QSettings settings(settingsFile, QSettings::NativeFormat);
-
+void NoteController::syncChanges()
+{
     syncFromServer();
 
-    bool errored = false;
+    qInfo() << "Synchronising note changes to Evernote.";
 
     struct GuidMap{
         QString local_guid;
@@ -217,24 +228,28 @@ void NoteController::syncChanges() {
     };
     std::vector<GuidMap> changes;
 
-    Cache *cache = new Cache();
-    std::vector<queueItem> queue = cache->retrieveAllFromQueueTable();
+    std::vector<queueItem> queue = Cache::retrieveAllFromQueueTable();
     std::vector<queueItem>::iterator n = queue.begin();
 
+    int createdNotes = 0;
+    int deletedNotes = 0;
+    int updatedNotes = 0;
     while(n != queue.end()) {
         queueItem item = *n;
 
-        if(item.type.toStdString() == "CREATE") {
+        if(item.type.toStdString() == "CREATE")
+        {
             qevercloud::Note note;
+
             note.title = item.note.title;
+            // If note has no title, set one...
+            if(note.title == "")
+                note.title = "Untitled";
+
             note.content = item.note.content;
             note.notebookGuid = notebookGUID;
-            note.content->prepend("<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml2.dtd'><en-note><div>");
-            note.content->append("</div></en-note>");
-            note.content->replace(QRegExp("[\n\t\r]"), "</div><div>");
 
-
-            qevercloud::NoteStore noteStore(settings.value("notestore_url").toString(), settings.value("auth_token").toString());
+            qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
             qevercloud::Note created_note = noteStore.createNote(note);
 
             GuidMap change;
@@ -242,59 +257,59 @@ void NoteController::syncChanges() {
             change.official_guid = created_note.guid;
             changes.push_back(change);
 
+            createdNotes++;
         } else if(item.type.toStdString() == "UPDATE") {
             qevercloud::Note note;
             note.title = item.note.title;
             note.content = item.note.content;
-            note.content->prepend("<?xml version='1.0' encoding='UTF-8'?><!DOCTYPE en-note SYSTEM 'http://xml.evernote.com/pub/enml2.dtd'><en-note><div>");
-            note.content->append("</div></en-note>");
-            note.content->replace(QRegExp("[\n\t\r]"), "</div><div>");
 
-            Note storedNote = cache->retrieveFromSyncTable(item.note.guid);
+            Note storedNote = Cache::retrieveFromSyncTable(item.note.guid);
 
             if(item.note.usn == storedNote.usn) {
                 // USN's are identical between the stored edited note, and the latest version of that note
                 // stored on Evernote's servers
                 note.guid = item.note.guid;
-                qevercloud::NoteStore noteStore(settings.value("notestore_url").toString(), settings.value("auth_token").toString());
+                qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
                 qevercloud::Note created_note = noteStore.updateNote(note);
+
+                updatedNotes++;
             } else {
+                qWarning() << "Conflicted change on note, pushing changes as new note.";
                 note.title->append(" [CONFLICTED CHANGE ON " + QDate::currentDate().toString("dd.MM.yyyy") + "]");
                 note.notebookGuid = notebookGUID;
-                qevercloud::NoteStore noteStore(settings.value("notestore_url").toString(), settings.value("auth_token").toString());
+                qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
                 qevercloud::Note created_note = noteStore.createNote(note);
 
                 GuidMap change;
                 change.local_guid = item.note.guid;
                 change.official_guid = created_note.guid;
                 changes.push_back(change);
+
+                createdNotes++;
             }
-
-
-
         } else if(item.type.toStdString() == "DELETE") {
-            qevercloud::NoteStore noteStore(settings.value("notestore_url").toString(), settings.value("auth_token").toString());
+            qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
             noteStore.deleteNote(item.note.guid);
+
+            deletedNotes++;
         }
-        cache->deleteFromQueueTable(item.id);
+
+        Cache::deleteFromQueueTable(item.id);
         n++;
     }
 
-    // Queue should already be empty, but this will clear the autoindent value if no errors occured
-    if(!errored) {
-        cache->emptyQueueTable();
-    }
+    // Queue should now be empty
+    Cache::emptyQueueTable();
 
-    delete cache;
+    qInfo() << "Created" << createdNotes << "note(s), deleted" << deletedNotes << "note(s), updated" << updatedNotes << "note(s).";
 
     syncFromServer();
 
-    cache = new Cache();
-    foreach(NoteUI *note, notes) {
+    foreach(NoteWidget *note, notes) {
         foreach(GuidMap change, changes) {
             if(note->note->guid == change.local_guid) {
                 if(change.local_guid.toStdString().substr(0,5) != "LOCAL") {
-                    Note* old_note = new Note(cache->retrieveFromSyncTable(change.local_guid));
+                    Note* old_note = new Note(Cache::retrieveFromSyncTable(change.local_guid));
                     createNote(old_note);
                 }
                 note->note->guid = change.official_guid;
@@ -302,19 +317,14 @@ void NoteController::syncChanges() {
         }
     }
 
-    delete cache;
-
     syncAllNoteModels();
-
-
 };
 
-void NoteController::syncFromServer() {
-    Cache cache;
-    cache.emptySyncTable();
+void NoteController::syncFromServer()
+{
+    Cache::emptySyncTable();
 
-    QSettings settings(settingsFile, QSettings::NativeFormat);
-    qevercloud::NoteStore noteStore(settings.value("notestore_url").toString(), settings.value("auth_token").toString());
+    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
 
     qevercloud::NoteFilter noteFilter;
     noteFilter.order = qevercloud::NoteSortOrder::UPDATE_SEQUENCE_NUMBER;
@@ -325,62 +335,55 @@ void NoteController::syncFromServer() {
     qevercloud::NotesMetadataResultSpec resultSpec;
     resultSpec.includeUpdateSequenceNum = true;
 
+    qInfo() << "Synchronising notes from Evernote.";
+
     qevercloud::NotesMetadataList noteMetadata = noteStore.findNotesMetadata(noteFilter, 0, 199, resultSpec);
 
-
     foreach(qevercloud::NoteMetadata metaNote, noteMetadata.notes) {
-        qevercloud::Guid guid = metaNote.guid;
-        int usn = metaNote.updateSequenceNum;
-        qevercloud::Note note = noteStore.getNote(guid, true, false, false, false);
-        note.content->replace("<div></div>", "<br>");
-        QString plainText = QTextDocumentFragment::fromHtml(note.content).toPlainText();
-
-        cache.insertSyncTable(Note(guid, usn, note.title, plainText));
+        qevercloud::Note note = noteStore.getNote(metaNote.guid, true, false, false, false);
+        Cache::insertSyncTable(Note(metaNote.guid, metaNote.updateSequenceNum, note.title, NoteFormatter(note.content).standardiseInput()));
     }
 
 }
 
-void NoteController::syncAllNoteModels() {
-    foreach(NoteUI *note, notes) {
+void NoteController::syncAllNoteModels()
+{
+    foreach(NoteWidget *note, notes) {
         note->syncModel();
     }
 }
 
-QString NoteController::getUsername() {
-    QSettings settings(settingsFile, QSettings::NativeFormat);
-    return settings.value("username").toString();
-}
-
-void NoteController::bringAllToFront() {
-    foreach(NoteUI *note, notes) {
+void NoteController::bringAllToFront()
+{
+    foreach(NoteWidget *note, notes) {
         note->bringToForeground();
     }
 }
 
 void NoteController::updateNoteDimensions(qevercloud::Guid guid, int x, int y, int width, int height) {
-    Cache cache;
-    cache.insertNotesTable(guid, this->screens, this->screenWidth, this->screenHeight, x, y, width, height);
+    Cache::insertNotesTable(guid, this->screens, this->screenWidth, this->screenHeight, x, y, width, height);
 }
 
-void NoteController::periodicUpdate() {
+void NoteController::periodicUpdate()
+{
     syncChanges();
 }
 
-void NoteController::logoutPrepare() {
-    QFile(this->settingsFile).remove();
+void NoteController::logoutPrepare()
+{
+    Settings::deleteSessionSettings();
 
-    Cache cache;
-    cache.deleteDatabase();
+    Cache::deleteDatabase();
 }
 
-void NoteController::logout() {
+void NoteController::logout()
+{
     logoutPrepare();
 
     QMessageBox confirmationBox;
     confirmationBox.setWindowTitle("Information");
     confirmationBox.setText("This application will now exit.");
     confirmationBox.setStandardButtons(QMessageBox::Ok);
-
 
     // Only delete note and close window if user confirms 'YES'
     if(confirmationBox.exec() == QMessageBox::Ok) {
@@ -390,3 +393,7 @@ void NoteController::logout() {
     }
 }
 
+bool NoteController::isAuthorised()
+{
+    return (state == tAuthState::AUTHORISED);
+}

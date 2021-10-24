@@ -15,29 +15,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef SETTINGS_H
+#define SETTINGS_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <QStandardPaths>
+#include <QString>
+#include <QVariant>
 
 
-int main(int argc, char **argv)
+class Settings
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+public:
+    static void deleteSessionSettings();
+    static QString getSessionSetting(QString settingKey);
+    static void setSessionSetting(QString settingKey, QString settingValue);
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+    static QVariant getUserSetting(QString settingKey);
+    static void setUserSetting(QString settingKey, QVariant settingValue);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+private:
+    static QString getSessionSettingsFileLocation();
+    static QString getUserSettingsFileLocation();
+};
 
-    return app.exec();
-}
-
-
+#endif // SETTINGS_H

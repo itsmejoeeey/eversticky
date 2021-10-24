@@ -15,29 +15,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef MISC_HELPERS_H
+#define MISC_HELPERS_H
+
 #include <iostream>
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <QString>
 
 
-int main(int argc, char **argv)
+namespace helpers
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+    namespace misc
+    {
+        QString random_hex_string(unsigned int length);
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+    } // namespace misc
+} // namespace helpers
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
-
-    return app.exec();
-}
-
-
+#endif // MISC_HELPERS_H

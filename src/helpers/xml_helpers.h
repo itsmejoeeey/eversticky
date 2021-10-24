@@ -15,29 +15,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef XML_HELPERS_H
+#define XML_HELPERS_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <QDomElement>
+#include <QString>
 
 
-int main(int argc, char **argv)
+namespace helpers
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+    namespace xml
+    {
+        QDomElement findFirstElementOfTagMatchingAttribute(const QString& tag_name, const QString& attribute_name, const QString& attribute_value, QList<QDomElement> elems);
+        void findAllElements(const QDomElement elem, QList<QDomElement>& foundElements);
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+        void deleteAllAttributes(QDomElement& element);
+        void deleteAllChildren(QDomNode& node);
+        void deleteNode(QDomNode& node);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+        QStringList getAllAttributeNames(QDomElement& element);
 
-    return app.exec();
-}
+    } // namespace xml
+} // namespace misc
 
-
+#endif // XML_HELPERS_H

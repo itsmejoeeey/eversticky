@@ -15,29 +15,39 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTE_HEADER_TEXT_EDIT_H
+#define NOTE_HEADER_TEXT_EDIT_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
+#include <QPlainTextEdit>
+#include <QVBoxLayout>
 
-#include "note_controller.h"
+#include "note_header.h"
 
 
-int main(int argc, char **argv)
+class NoteHeaderTextEdit : public QPlainTextEdit
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    NoteHeaderTextEdit(QWidget *parent);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+    void setText(QString text);
 
-    return app.exec();
-}
+signals:
+    void textUpdated(QString newText);
 
+private slots:
+    void textChanged();
 
+private:
+    QString getText();
+
+    void resizeEvent(QResizeEvent *event) override;
+    void resizeToFitContent();
+
+protected:
+    bool eventFilter(QObject *object, QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *e) override;
+};
+
+#endif // NOTE_HEADER_TEXT_EDIT_H

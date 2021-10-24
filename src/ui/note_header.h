@@ -15,29 +15,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTE_HEADER_H
+#define NOTE_HEADER_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <QTextEdit>
+#include <QHBoxLayout>
 
 
-int main(int argc, char **argv)
+class NoteWebview;
+class NoteHeaderTextEdit;
+class NoteWidget;
+
+class NoteHeader : public QWidget
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    NoteHeader(QWidget *context);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+    void setText(QString text);
+    void clearText();
+    QString getText();
 
-    return app.exec();
-}
+signals:
+    void textUpdated(QString newText);
 
+private:
+    NoteHeaderTextEdit *headerTextEdit;
+};
 
+#endif // NOTE_HEADER_H

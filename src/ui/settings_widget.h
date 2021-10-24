@@ -15,29 +15,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef SETTINGSWIDGET_H
+#define SETTINGSWIDGET_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDialog>
+#include <QSpinBox>
 
-#include "note_controller.h"
 
-
-int main(int argc, char **argv)
+class SettingsWidget : public QDialog
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    SettingsWidget();
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+private slots:
+    void exitSettings();
+    void saveSettings();
 
-    return app.exec();
-}
+private:
+    QSpinBox *syncIntervalInput;
+    QCheckBox *checkUpdatesCheckbox;
+    QComboBox *trayIconStyleCombobox;
+};
 
-
+#endif // SETTINGSWIDGET_H

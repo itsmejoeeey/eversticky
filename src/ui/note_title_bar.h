@@ -15,29 +15,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#ifndef NOTETITLEBAR_H
+#define NOTETITLEBAR_H
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QScreen>
-
-#include "note_controller.h"
+#include <QMenuBar>
+#include <QWidget>
 
 
-int main(int argc, char **argv)
+class NoteTitleBar: public QWidget
 {
-    QApplication app (argc, argv);
-    app.setApplicationName("eversticky");
+Q_OBJECT
 
-    // Show timestamp in logging output
-    qSetMessagePattern("[%{time}] %{message}");
+public:
+    NoteTitleBar(QWidget* parent);
 
-    const int numScreens = app.screens().length();
-    const QRect screenSize = app.primaryScreen()->virtualGeometry();
-    // *.* Where the magic happens *.*
-    new NoteController(numScreens, screenSize.width(), screenSize.height());
+signals:
+    void addPressed();
+    void deletePressed();
 
-    return app.exec();
-}
+protected:
+    void mouseMoveEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event);
 
+private:
+    bool mousePressed;
+    QPoint mousePressPosition;
+    bool mouseCursorChanged;
+};
 
+#endif // NOTETITLEBAR_H
