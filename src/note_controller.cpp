@@ -185,15 +185,18 @@ void NoteController::logout()
     Cache::deleteDatabase();
 
     QMessageBox confirmationBox;
+    confirmationBox.setIcon(QMessageBox::Information);
+    QIcon icon(":/icon/appicon.ico");
+    confirmationBox.setWindowIcon(icon);
     confirmationBox.setWindowTitle("Information");
     confirmationBox.setText("This application will now exit.");
     confirmationBox.setStandardButtons(QMessageBox::Ok);
 
     // Only delete note and close window if user confirms 'YES'
-    if(confirmationBox.exec() == QMessageBox::Ok) {
+    if(confirmationBox.exec() == QMessageBox::Ok)
+    {
         confirmationBox.close();
         QCoreApplication::quit();
-
     }
 }
 

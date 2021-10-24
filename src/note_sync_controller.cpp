@@ -17,6 +17,7 @@
 
 #include "note_sync_controller.h"
 
+#include <QIcon>
 #include <QMessageBox>
 
 #include "cache.h"
@@ -49,10 +50,18 @@ bool NoteSyncController::authenticate()
     if(!authenticated) {
         // Test OAuth
         qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY), QString::fromStdString(API_SECRET), QString::fromStdString(API_HOST));
-        dialog.setWindowTitle("Log in to Evernote | eversticky");
+        QIcon icon(":/icon/appicon.ico");
+        dialog.setWindowIcon(icon);
+        dialog.setWindowTitle("EverSticky | Log in to Evernote");
+
         if (dialog.exec() != QDialog::Accepted) {
             // OAuth login failed
-            QMessageBox::critical(0, "NotePoster", "Login failed.\n" + dialog.oauthError());
+            QMessageBox failedBox;
+            failedBox.setIcon(QMessageBox::Critical);
+            failedBox.setWindowIcon(icon);
+            failedBox.setWindowTitle("Critical");
+            failedBox.setText("Login failed.\n" + dialog.oauthError());
+            failedBox.exec();
 
             return false;
         }
