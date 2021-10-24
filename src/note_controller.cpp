@@ -153,6 +153,12 @@ void NoteController::updateNoteDimensions(qevercloud::Guid guid, int x, int y, i
 
 void NoteController::periodicUpdate()
 {
+    // Don't update if not authenticated with Evernote.
+    if(!isAuthorised())
+    {
+        return;
+    }
+
     std::vector<GuidMap> changes = NoteSyncController::syncChanges();
 
     // If new notes have been created on sync, the local GUID needs to be updated to the the notes new
