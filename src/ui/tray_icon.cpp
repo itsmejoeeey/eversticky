@@ -134,10 +134,7 @@ void TrayIcon::createIconMenu(QPoint point)
 
 void TrayIcon::loginAction()
 {
-    if(parent->authenticate()) {
-        parent->getNotebookGUID();
-        parent->showNotes();
-    }
+    parent->login();
 }
 
 void TrayIcon::createAction()
@@ -147,7 +144,7 @@ void TrayIcon::createAction()
 
 void TrayIcon::syncAction()
 {
-    parent->syncChanges();
+    parent->periodicUpdate();
 }
 
 void TrayIcon::foregroundAction()

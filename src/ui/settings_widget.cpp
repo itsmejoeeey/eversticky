@@ -24,7 +24,6 @@
 #include <QLabel>
 #include <QMessageBox>
 
-
 #include "settings.h"
 
 

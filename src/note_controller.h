@@ -45,7 +45,6 @@ public:
 
     bool isAuthorised();
 
-    void syncFromServer();
     void syncAllNoteModels();
 
     void bringAllToFront();
@@ -55,10 +54,8 @@ public:
     void logout();
 
 public slots:
-    bool authenticate();
-    void getNotebookGUID();
+    void login();
     void showNotes();
-    void syncChanges();
     void periodicUpdate();
 
 private:
@@ -66,7 +63,6 @@ private:
 
     std::vector<NoteWidget*> notes;
     int noteCount;
-    qevercloud::Guid notebookGUID;
 
     int screens;
     int screenWidth;

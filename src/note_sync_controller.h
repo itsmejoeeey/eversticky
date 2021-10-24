@@ -18,6 +18,14 @@
 #ifndef NOTESYNCCONTROLLER_H
 #define NOTESYNCCONTROLLER_H
 
+#include <QEverCloudOAuth.h>
+
+
+struct GuidMap{
+    QString local_guid;
+    QString official_guid;
+};
+
 typedef enum tAuthState {
     UNAUTHORISED,
     AUTHORISED
@@ -26,7 +34,15 @@ typedef enum tAuthState {
 class NoteSyncController
 {
 public:
-    NoteSyncController();
+    static bool authenticate();
+
+    static void getNotebookGUID();
+
+    static std::vector<GuidMap> syncChanges();
+    static void syncFromServer();
+
+private:
+    static qevercloud::Guid notebookGUID;
 };
 
 #endif // NOTESYNCCONTROLLER_H
