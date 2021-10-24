@@ -8,15 +8,15 @@ DEFINES += \
     # Can be either 'www.evernote.com' or 'sandbox.evernote.com' for testing
     # --> If error 'Host requires authentication' you must go to 'https://dev.evernote.com/support/'
     #       to request activation of your API key on our production service.
-    API_HOST=\\\"sandbox.evernote.com\\\" \
+    API_HOST=\\\"XXXXXXXXXXXXXXXX\\\" \
     #
     ## API_KEY
     # Typically The username of the user than owns the API key
-    API_KEY=\\\"joejoe31b-9118\\\" \
+    API_KEY=\\\"XXXXXXXXXXXXXXXX\\\" \
     #
     ## API_SECRET
     # The 16-digit API key
-    API_SECRET=\\\"1f7f6b75e35e7369\\\"
+    API_SECRET=\\\"XXXXXXXXXXXXXXXX\\\"
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += core gui network sql webenginewidgets webkit webkitwidgets widgets x11extras xml
