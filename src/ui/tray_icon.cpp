@@ -29,6 +29,7 @@
 #include <QUrl>
 
 #include <settings.h>
+#include <ui/about_widget.h>
 #include <ui/settings_widget.h>
 
 
@@ -128,6 +129,7 @@ void TrayIcon::createIconMenu(QPoint point)
     menu.addSeparator();
 
     menu.addAction("Settings", this, SLOT(settingsAction()));
+    menu.addAction("About", this, SLOT(aboutAction()));
     menu.addAction("Exit", this, SLOT(exitAction()));
     menu.exec(point);
 }
@@ -155,6 +157,11 @@ void TrayIcon::foregroundAction()
 void TrayIcon::settingsAction()
 {
     new SettingsWidget();
+}
+
+void TrayIcon::aboutAction()
+{
+    new AboutWidget();
 }
 
 void TrayIcon::exitAction()

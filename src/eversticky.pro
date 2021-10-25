@@ -29,6 +29,7 @@ SOURCES += \
     cache.cpp \
     note_sync_controller.cpp \
     settings.cpp \
+    ui/about_widget.cpp \
     ui/note_header.cpp \
     ui/note_header_text_edit.cpp \
     ui/note_scroll_area.cpp \
@@ -64,6 +65,7 @@ HEADERS += \
     note_formatter.h \
     note_sync_controller.h \
     settings.h \
+    ui/about_widget.h \
     ui/note_header.h \
     ui/note_header_text_edit.h \
     ui/note_scroll_area.h \

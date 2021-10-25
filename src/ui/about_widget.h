@@ -15,38 +15,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRAY_ICON_H
-#define TRAY_ICON_H
+#ifndef ABOUTWIDGET_H
+#define ABOUTWIDGET_H
 
-#include <QSystemTrayIcon>
-
-#include "note_controller.h"
+#include <QDialog>
 
 
-class TrayIcon : public QSystemTrayIcon
+class AboutWidget : public QDialog
 {
 Q_OBJECT
 
 public:
-    TrayIcon(NoteController* parent);
-
-private slots:
-    void trayEvent(QSystemTrayIcon::ActivationReason reason);
-
-    bool checkUpdateAvailable();
-
-    void loginAction();
-    void createAction();
-    void foregroundAction();
-    void syncAction();
-    void settingsAction();
-    void aboutAction();
-    void exitAction();
-    void logout();
-
-private:
-    NoteController *parent;
-    void createIconMenu(QPoint point);
+    AboutWidget();
 };
 
-#endif // TRAY_ICON_H
+#endif // ABOUTWIDGET_H

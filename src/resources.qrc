@@ -4,6 +4,7 @@
         <file>icon/trayicon_black.ico</file>
         <file>icon/trayicon_white.ico</file>
         <file>icon/sizegripicon.svg</file>
+        <file>style/about_stylesheet.qss</file>
         <file>style/note_stylesheet.qss</file>
     </qresource>
 </RCC>
