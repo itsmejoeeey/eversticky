@@ -48,7 +48,7 @@ TrayIcon::TrayIcon(NoteController* parent) : parent(parent), QSystemTrayIcon()
 
     show();
 
-    if(checkUpdateAvailable())
+    if(Settings::getUserSetting("check_for_updates").toBool() && checkUpdateAvailable())
     {
         showMessage("Update Available", "A new version of eversticky has been released - click to download.", icon, 5000);
 
@@ -131,6 +131,7 @@ void TrayIcon::createIconMenu(QPoint point)
     menu.addAction("Settings", this, SLOT(settingsAction()));
     menu.addAction("About", this, SLOT(aboutAction()));
     menu.addAction("Exit", this, SLOT(exitAction()));
+
     menu.exec(point);
 }
 
