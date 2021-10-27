@@ -41,7 +41,6 @@ public:
     NoteWidget(NoteController *parent, Note* note, noteItem size);
     void testFunc();
 
-    void updateModel(Note *note);
     void syncModel();
     Note* note;
     void bringToForeground();

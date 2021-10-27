@@ -212,12 +212,6 @@ void NoteWidget::contentTextChanged(QString newText)
     }
 }
 
-void NoteWidget::updateModel(Note *note)
-{
-    this->note = note;
-    this->updateUI();
-}
-
 void NoteWidget::syncModel()
 {
     Note *updatedNote = new Note(Cache::retrieveFromSyncTable(this->note->guid));

@@ -30,7 +30,6 @@ NoteFormatter::NoteFormatter(QString input_text) : inputText(input_text) {
 
 };
 
-
 QString NoteFormatter::standardiseInput()
 {
     QDomDocument doc;
