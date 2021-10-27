@@ -215,8 +215,16 @@ void NoteWidget::contentTextChanged(QString newText)
 void NoteWidget::syncModel()
 {
     Note *updatedNote = new Note(Cache::retrieveFromSyncTable(this->note->guid));
-    this->note = updatedNote;
-    this->updateUI();
+
+    // If note doesn't exist in sync table (all fields are NULL), note has been deleted.
+    if(updatedNote->guid == NULL  && updatedNote->usn == NULL &&
+       updatedNote->title == NULL && updatedNote->content == NULL){
+        // Close the window
+        this->close();
+    } else {
+        this->note = updatedNote;
+        this->updateUI();
+    }
 }
 
 void NoteWidget::bringToForeground()

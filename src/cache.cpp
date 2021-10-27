@@ -90,9 +90,11 @@ Note Cache::retrieveFromSyncTable(qevercloud::Guid guid)
     query.bindValue(":guid", guid.toUtf8().constData());
     query.exec();
 
-    query.next();
-
-    return Note(query.value(0).toString(), query.value(1).toInt(), query.value(2).toString(), query.value(3).toString());
+    if(query.next()) {
+        return Note(query.value(0).toString(), query.value(1).toInt(), query.value(2).toString(), query.value(3).toString());
+    } else {
+        return Note(NULL, NULL, NULL, NULL);
+    }
 }
 
 queueItem Cache::retrieveFromQueueTable(qevercloud::Guid guid)
