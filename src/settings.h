@@ -26,7 +26,8 @@
 class Settings
 {
 public:
-    static void deleteSessionSettings();
+    static void deleteAllSessionSettings();
+    static void deleteCurrentSessionSettings();
     static QString getSessionSetting(QString settingKey);
     static void setSessionSetting(QString settingKey, QString settingValue);
 

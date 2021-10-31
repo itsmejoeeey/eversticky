@@ -39,9 +39,19 @@ QString Settings::getUserSettingsFileLocation()
     return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation).append("/user_settings.ini");
 }
 
-void Settings::deleteSessionSettings()
+void Settings::deleteAllSessionSettings()
 {
     QFile(getSessionSettingsFileLocation()).remove();
+}
+
+void Settings::deleteCurrentSessionSettings()
+{
+    // Delete all session settings except for the session username.
+    // This allows us to avoid deleting all unsynced notes if the same user is logging in again (i.e. after having to login again
+    // after Evernote downtime, or auth key expiring).
+    QString currentUsername = getSessionSetting("username");
+    deleteAllSessionSettings();
+    setSessionSetting("username", currentUsername);
 }
 
 QString Settings::getSessionSetting(QString settingKey)

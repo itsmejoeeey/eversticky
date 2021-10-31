@@ -25,65 +25,69 @@
 #include "settings.h"
 
 
-qevercloud::Guid NoteSyncController::notebookGUID;
-
 bool NoteSyncController::authenticate()
 {
-    bool authenticated = false;
-
     if(!(Settings::getSessionSetting("auth_token") == "" ||
          Settings::getSessionSetting("notestore_url") == "" ||
          Settings::getSessionSetting("username") == "" )) {
         try {
             qevercloud::UserStore user_store(QString::fromStdString(API_HOST), Settings::getSessionSetting("auth_token"));
             qevercloud::User user = user_store.getUser();
-            authenticated = true;
-        } catch(qevercloud::EDAMUserException) {
-            Settings::deleteSessionSettings();
-            Cache::deleteDatabase();
-        } catch(qevercloud::EDAMSystemException) {
-            Settings::deleteSessionSettings();
-            Cache::deleteDatabase();
+            return true;
+        }
+        // Catch all Evernote exceptions
+        catch(qevercloud::EverCloudException e) {
+            qCritical() << "An exception occured while authenticating with Evernote servers.";
+            qCritical() << "Exception message:" << e.exceptionData()->errorMessage;
+
+            // Force the user to reauthenticate.
+            Settings::deleteCurrentSessionSettings();
         }
     }
 
-    if(!authenticated) {
-        // Test OAuth
-        qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY), QString::fromStdString(API_SECRET), QString::fromStdString(API_HOST));
-        QIcon icon(":/icon/appicon.ico");
-        dialog.setWindowIcon(icon);
-        dialog.setWindowTitle("EverSticky | Log in to Evernote");
+    // Open OAuth dialog
+    qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY), QString::fromStdString(API_SECRET), QString::fromStdString(API_HOST));
+    QIcon icon(":/icon/appicon.ico");
+    dialog.setWindowIcon(icon);
+    dialog.setWindowTitle("EverSticky | Log in to Evernote");
 
-        if (dialog.exec() != QDialog::Accepted) {
-            // OAuth login failed
-            QMessageBox failedBox;
-            failedBox.setIcon(QMessageBox::Critical);
-            failedBox.setWindowIcon(icon);
-            failedBox.setWindowTitle("Critical");
-            failedBox.setText("Login failed.\n" + dialog.oauthError());
-            failedBox.exec();
+    if (dialog.exec() != QDialog::Accepted) {
+        // OAuth login failed
+        QMessageBox failedBox;
+        failedBox.setIcon(QMessageBox::Critical);
+        failedBox.setWindowIcon(icon);
+        failedBox.setWindowTitle("Critical");
+        failedBox.setText("Login failed.\n" + dialog.oauthError());
+        failedBox.exec();
 
-            return false;
-        }
+        return false;
+    }
 
-        QString auth_token = dialog.oauthResult().authenticationToken;
-        QString notestore_url = dialog.oauthResult().noteStoreUrl;
+    QString auth_token = dialog.oauthResult().authenticationToken;
+    QString notestore_url = dialog.oauthResult().noteStoreUrl;
 
-        qevercloud::UserStore user_store(QString::fromStdString(API_HOST), auth_token);
-        qevercloud::User user = user_store.getUser();
-        QString username = user.username;
+    // Get username associated with login
+    qevercloud::UserStore user_store(QString::fromStdString(API_HOST), auth_token);
+    qevercloud::User user = user_store.getUser();
+    QString username = user.username;
 
-        Settings::setSessionSetting("auth_token", auth_token);
-        Settings::setSessionSetting("notestore_url", notestore_url);
+    // If the authenticated username differs from the previous username (or there is no previous username),
+    // delete all the data from the previous user/runtime.
+    if(Settings::getSessionSetting("username") != username)
+    {
+        Settings::deleteAllSessionSettings();
+        Cache::deleteDatabase();
+
         Settings::setSessionSetting("username", username);
     }
-
-    getNotebookGUID();
+    Settings::setSessionSetting("auth_token", auth_token);
+    Settings::setSessionSetting("notestore_url", notestore_url);
+    Settings::setSessionSetting("notebook_guid", getNotebookGUID());
 
     return true;
 }
 
-void NoteSyncController::getNotebookGUID()
+qevercloud::Guid NoteSyncController::getNotebookGUID()
 {
     qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
     QList<qevercloud::Notebook> notebooks = noteStore.listNotebooks();
@@ -115,7 +119,7 @@ void NoteSyncController::getNotebookGUID()
         notebookID = createdNotebook.guid;
     }
 
-    notebookGUID = notebookID;
+    return notebookID;
 }
 
 std::vector<GuidMap> NoteSyncController::syncChanges()
@@ -132,68 +136,62 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
     int createdNotes = 0;
     int deletedNotes = 0;
     int updatedNotes = 0;
-    while(n != queue.end()) {
-        queueItem item = *n;
-
-        if(item.type.toStdString() == "CREATE")
+    try {
+        while(n != queue.end())
         {
-            qevercloud::Note note;
+            queueItem item = *n;
 
-            note.title = item.note.title;
-            // If note has no title, set one...
-            if(note.title == "")
-                note.title = "Untitled";
-
-            note.content = item.note.content;
-            note.notebookGuid = notebookGUID;
-
-            qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-            qevercloud::Note created_note = noteStore.createNote(note);
-
-            GuidMap change;
-            change.local_guid = item.note.guid;
-            change.official_guid = created_note.guid;
-            changes.push_back(change);
-
-            createdNotes++;
-        } else if(item.type.toStdString() == "UPDATE") {
-            qevercloud::Note note;
-            note.title = item.note.title;
-            note.content = item.note.content;
-
-            Note storedNote = Cache::retrieveFromSyncTable(item.note.guid);
-
-            if(item.note.usn == storedNote.usn) {
-                // USN's are identical between the stored edited note, and the latest version of that note
-                // stored on Evernote's servers
-                note.guid = item.note.guid;
-                qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-                qevercloud::Note created_note = noteStore.updateNote(note);
-
-                updatedNotes++;
-            } else {
-                qWarning() << "Conflicted change on note, pushing changes as new note.";
-                note.title->append(" [CONFLICTED CHANGE ON " + QDate::currentDate().toString("dd.MM.yyyy") + "]");
-                note.notebookGuid = notebookGUID;
-                qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-                qevercloud::Note created_note = noteStore.createNote(note);
-
-                GuidMap change;
-                change.local_guid = item.note.guid;
-                change.official_guid = created_note.guid;
-                changes.push_back(change);
-
+            // *- CREATE note -*
+            if(item.type == "CREATE") {
+                qevercloud::Guid createdNoteGuid = syncCreateNote(item.note);
+                changes.push_back(GuidMap({
+                    .local_guid = item.note.guid,
+                    .official_guid = createdNoteGuid
+                }));
                 createdNotes++;
             }
-        } else if(item.type.toStdString() == "DELETE") {
-            qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-            noteStore.deleteNote(item.note.guid);
+            // *- UPDATE note -*
+            else if(item.type == "UPDATE") {
+                Note storedNote = Cache::retrieveFromSyncTable(item.note.guid);
 
-            deletedNotes++;
+                // Check if the remote note has been changed more recently.
+                // If the USNs match between the the remote note and the changed note, the
+                // change is not conflicting.
+                if(item.note.usn == storedNote.usn) {
+                    syncUpdateNote(item.note);
+                    updatedNotes++;
+                }
+                // USNs do not match. Changes are conflicting.
+                // To avoid data loss, create a new note with the changes.
+                else {
+                    qWarning() << "Conflicted change on note, pushing changes as new note.";
+                    item.note.title.append(" [CONFLICTED CHANGE ON " + QDate::currentDate().toString("dd.MM.yyyy") + "]");
+
+                    qevercloud::Guid createdNoteGuid = syncCreateNote(item.note);
+                    changes.push_back(GuidMap({
+                        .local_guid = item.note.guid,
+                        .official_guid = createdNoteGuid
+                    }));
+                    createdNotes++;
+                }
+            }
+            // *- DELETE note -*
+            else if(item.type == "DELETE") {
+                syncDeleteNote(item.note);
+                deletedNotes++;
+            }
+
+            Cache::deleteFromQueueTable(item.id);
+            n++;
         }
+    }
+    // Catch all Evernote exceptions
+    catch(qevercloud::EverCloudException e) {
+        qCritical() << "An exception occured while syncronising changes with Evernote servers.";
+        qCritical() << "Exception message:" << e.exceptionData()->errorMessage;
 
-        Cache::deleteFromQueueTable(item.id);
-        n++;
+        // Stop prematurely. Hopefully next time will succeed.
+        return changes;
     }
 
     // Queue should now be empty
@@ -215,7 +213,7 @@ void NoteSyncController::syncFromServer()
     qevercloud::NoteFilter noteFilter;
     noteFilter.order = qevercloud::NoteSortOrder::UPDATE_SEQUENCE_NUMBER;
     noteFilter.ascending = false;
-    noteFilter.notebookGuid = notebookGUID;
+    noteFilter.notebookGuid = Settings::getSessionSetting("notebook_guid");
     noteFilter.inactive = false;
 
     qevercloud::NotesMetadataResultSpec resultSpec;
@@ -223,11 +221,59 @@ void NoteSyncController::syncFromServer()
 
     qInfo() << "Synchronising notes from Evernote.";
 
-    qevercloud::NotesMetadataList noteMetadata = noteStore.findNotesMetadata(noteFilter, 0, 199, resultSpec);
+    qevercloud::NotesMetadataList noteMetadata;
+    try {
+        noteMetadata = noteStore.findNotesMetadata(noteFilter, 0, 199, resultSpec);
+    }
+    // Exit prematurely on any Evernote exception
+    catch (qevercloud::EverCloudException e) {
+        qCritical() << "An exception occured while syncronising with Evernote servers.";
+        qCritical() << "Exception message:" << e.exceptionData()->errorMessage;
+
+        return;
+    }
 
     foreach(qevercloud::NoteMetadata metaNote, noteMetadata.notes) {
         qevercloud::Note note = noteStore.getNote(metaNote.guid, true, false, false, false);
         Cache::insertSyncTable(Note(metaNote.guid, metaNote.updateSequenceNum, note.title, NoteFormatter(note.content).standardiseInput()));
     }
+}
 
+qevercloud::Guid NoteSyncController::syncCreateNote(Note note)
+{
+    qevercloud::Note cleanedNote;
+
+    // If note has no title, set one...
+    if(note.title == "") {
+        cleanedNote.title = "Untitled";
+    } else {
+        cleanedNote.title = note.title;
+    }
+
+    cleanedNote.content = note.content;
+    cleanedNote.notebookGuid = Settings::getSessionSetting("notebook_guid");
+
+    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
+    qevercloud::Note created_note = noteStore.createNote(cleanedNote);
+
+    // Return the guid of the newly created note.
+    return created_note.guid;
+}
+
+void NoteSyncController::syncDeleteNote(Note note)
+{
+    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
+    noteStore.deleteNote(note.guid);
+}
+
+void NoteSyncController::syncUpdateNote(Note note)
+{
+    qevercloud::Note cleanedNote;
+
+    cleanedNote.title = note.title;
+    cleanedNote.content = note.content;
+    cleanedNote.guid = note.guid;
+
+    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
+    qevercloud::Note created_note = noteStore.updateNote(cleanedNote);
 }

@@ -183,7 +183,7 @@ void NoteController::logout()
 {
     state = tAuthState::UNAUTHORISED;
 
-    Settings::deleteSessionSettings();
+    Settings::deleteAllSessionSettings();
     Cache::deleteDatabase();
 
     QMessageBox confirmationBox;

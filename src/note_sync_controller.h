@@ -20,10 +20,12 @@
 
 #include <QEverCloudOAuth.h>
 
+#include <note.h>
+
 
 struct GuidMap{
-    QString local_guid;
-    QString official_guid;
+    qevercloud::Guid local_guid;
+    qevercloud::Guid official_guid;
 };
 
 typedef enum tAuthState {
@@ -36,13 +38,15 @@ class NoteSyncController
 public:
     static bool authenticate();
 
-    static void getNotebookGUID();
-
     static std::vector<GuidMap> syncChanges();
     static void syncFromServer();
 
 private:
-    static qevercloud::Guid notebookGUID;
+    static qevercloud::Guid getNotebookGUID();
+
+    static qevercloud::Guid syncCreateNote(Note note);
+    static void syncDeleteNote(Note note);
+    static void syncUpdateNote(Note note);
 };
 
 #endif // NOTESYNCCONTROLLER_H
