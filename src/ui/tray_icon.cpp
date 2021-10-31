@@ -28,12 +28,11 @@
 #include <QtNetwork/QNetworkReply>
 #include <QUrl>
 
+#include <note_controller.h>
 #include <settings.h>
 #include <ui/about_widget.h>
 #include <ui/settings_widget.h>
 
-
-void trayEvent();
 
 TrayIcon::TrayIcon(NoteController* parent) : parent(parent), QSystemTrayIcon()
 {
@@ -44,7 +43,10 @@ TrayIcon::TrayIcon(NoteController* parent) : parent(parent), QSystemTrayIcon()
         icon = QIcon(":/icon/trayicon_white.ico");
     setIcon(icon);
 
-    connect(this, &QSystemTrayIcon::activated, this, &TrayIcon::trayEvent);
+    trayMenu = new QMenu();
+    trayMenu->setContextMenuPolicy(Qt::CustomContextMenu);
+    updateTrayMenu();
+    setContextMenu(trayMenu);
 
     show();
 
@@ -60,18 +62,9 @@ TrayIcon::TrayIcon(NoteController* parent) : parent(parent), QSystemTrayIcon()
     }
 }
 
-void TrayIcon::trayEvent(QSystemTrayIcon::ActivationReason reason)
+TrayIcon::~TrayIcon()
 {
-    switch(reason) {
-        case QSystemTrayIcon::Context:
-            createIconMenu(QCursor::pos());
-            break;
-        case QSystemTrayIcon::Trigger:
-            foregroundAction();
-            break;
-        default:
-            break;
-    }
+    delete trayMenu;
 }
 
 bool TrayIcon::checkUpdateAvailable()
@@ -97,42 +90,39 @@ bool TrayIcon::checkUpdateAvailable()
     return false;
 }
 
-void TrayIcon::createIconMenu(QPoint point)
+void TrayIcon::updateTrayMenu()
 {
-    QMenu menu;
-    menu.setContextMenuPolicy(Qt::CustomContextMenu);
+    trayMenu->clear();
 
     if(parent->isAuthorised()) {
         QAction *login_action = new QAction();
         login_action->setText("Logged in as " + Settings::getSessionSetting("username"));
         login_action->setEnabled(false);
-        menu.addAction(login_action);
+        trayMenu->addAction(login_action);
 
-        menu.addAction("↪ Logout", this, SLOT(logout()));
+        trayMenu->addAction("↪ Logout", this, SLOT(logout()));
     } else {
         QAction *login_action = new QAction();
         login_action->setText("Not logged in!");
         login_action->setEnabled(false);
-        menu.addAction(login_action);
+        trayMenu->addAction(login_action);
     }
 
-    menu.addSeparator();
+    trayMenu->addSeparator();
 
     if(parent->isAuthorised()) {
-        menu.addAction("Create note", this, SLOT(createAction()));
-        menu.addAction("Force sync now", this, SLOT(syncAction()));
-        menu.addAction("Bring notes to foreground", this, SLOT(foregroundAction()));
+        trayMenu->addAction("Create note", this, SLOT(createAction()));
+        trayMenu->addAction("Force sync now", this, SLOT(syncAction()));
+        trayMenu->addAction("Bring notes to foreground", this, SLOT(foregroundAction()));
     } else {
-        menu.addAction("Login", this, SLOT(loginAction()));
+        trayMenu->addAction("Login", this, SLOT(loginAction()));
     }
 
-    menu.addSeparator();
+    trayMenu->addSeparator();
 
-    menu.addAction("Settings", this, SLOT(settingsAction()));
-    menu.addAction("About", this, SLOT(aboutAction()));
-    menu.addAction("Exit", this, SLOT(exitAction()));
-
-    menu.exec(point);
+    trayMenu->addAction("Settings", this, SLOT(settingsAction()));
+    trayMenu->addAction("About", this, SLOT(aboutAction()));
+    trayMenu->addAction("Exit", this, SLOT(exitAction()));
 }
 
 void TrayIcon::loginAction()

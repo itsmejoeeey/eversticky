@@ -20,8 +20,8 @@
 
 #include <QSystemTrayIcon>
 
-#include "note_controller.h"
 
+class NoteController;
 
 class TrayIcon : public QSystemTrayIcon
 {
@@ -29,10 +29,11 @@ Q_OBJECT
 
 public:
     TrayIcon(NoteController* parent);
+    ~TrayIcon();
+
+    void updateTrayMenu();
 
 private slots:
-    void trayEvent(QSystemTrayIcon::ActivationReason reason);
-
     bool checkUpdateAvailable();
 
     void loginAction();
@@ -46,6 +47,8 @@ private slots:
 
 private:
     NoteController *parent;
+    QMenu* trayMenu;
+
     void createIconMenu(QPoint point);
 };
 

@@ -26,7 +26,7 @@ static QMap<QString, QVariant> defaultUserSettings =
 {
     {"sync_interval", 300},
     {"check_for_updates", true},
-    {"dark_status_icon", true}
+    {"dark_status_icon", false}
 };
 
 QString Settings::getSessionSettingsFileLocation()

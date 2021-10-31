@@ -32,12 +32,11 @@
 #include "note_sync_controller.h"
 #include "settings.h"
 #include "ui/note_widget.h"
-#include "ui/tray_icon.h"
 
 
 NoteController::NoteController(int screens, int screenWidth, int screenHeight) : screens(screens), screenWidth(screenWidth), screenHeight(screenHeight), QObject(), state(tAuthState::UNAUTHORISED)
 {
-    new TrayIcon(this);
+    trayIcon = new TrayIcon(this);
 
     login();
 
@@ -46,6 +45,11 @@ NoteController::NoteController(int screens, int screenWidth, int screenHeight) :
     timer->setTimerType(Qt::VeryCoarseTimer);
     // Set timer to user-defined duration. Convert from seconds to ms.
     timer->start(Settings::getUserSetting("sync_interval").toInt() * 1000);
+}
+
+NoteController::~NoteController()
+{
+    delete trayIcon;
 }
 
 // Creating a new note to later be created in the users' Evernote account
@@ -93,6 +97,8 @@ void NoteController::login()
     if(NoteSyncController::authenticate())
     {
         state = tAuthState::AUTHORISED;
+
+        trayIcon->updateTrayMenu();
         showNotes();
     }
 }

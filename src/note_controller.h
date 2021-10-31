@@ -29,6 +29,7 @@
 #include "cache.h"
 #include "note.h"
 #include "note_sync_controller.h"
+#include "ui/tray_icon.h"
 
 
 class NoteWidget;
@@ -39,6 +40,8 @@ Q_OBJECT
 
 public:
     NoteController(int screens, int screenWidth, int screenHeight);
+    ~NoteController();
+
     NoteWidget* createNote();
     NoteWidget* createNote(Note *note);
     NoteWidget* createNote(Note* note_model, noteItem size);
@@ -60,6 +63,8 @@ public slots:
 
 private:
     tAuthState state;
+
+    TrayIcon *trayIcon;
 
     std::vector<NoteWidget*> notes;
     int noteCount;
