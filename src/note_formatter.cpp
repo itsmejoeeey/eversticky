@@ -20,8 +20,6 @@
 #include <QDebug>
 #include <QDomDocument>
 #include <QDomElement>
-#include <QWebElement>
-#include <QWebFrame>
 
 #include "helpers/xml_helpers.h"
 

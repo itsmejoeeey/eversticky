@@ -18,8 +18,10 @@ DEFINES += \
     # The 16-digit API key
     API_SECRET=\\\"XXXXXXXXXXXXXXXX\\\"
 
+# Ensure Qt WebKit is not required as a dependency
+DEFINES += QEVERCLOUD_USE_QT_WEB_ENGINE
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += core gui network sql webenginewidgets webkit webkitwidgets widgets x11extras xml
+greaterThan(QT_MAJOR_VERSION, 4): QT += core gui network sql webenginewidgets widgets x11extras xml
 
 SOURCES += \
     main.cpp \
