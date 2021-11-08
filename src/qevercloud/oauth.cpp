@@ -125,6 +125,7 @@ EvernoteOAuthWebView::EvernoteOAuthWebView(QWidget * parent) :
                      this, QEC_SIGNAL(EvernoteOAuthWebView,authenticationFailed));
 
     QVBoxLayout * pLayout = new QVBoxLayout(this);
+    pLayout->setContentsMargins(0,0,0,0);
     pLayout->addWidget(d_ptr);
     setLayout(pLayout);
 }
@@ -311,6 +312,7 @@ EvernoteOAuthDialog::EvernoteOAuthDialog(QString consumerKey, QString consumerSe
                      this, QEC_SLOT(EvernoteOAuthDialog,reject), Qt::QueuedConnection);
 
     QVBoxLayout * pLayout = new QVBoxLayout(this);
+    pLayout->setContentsMargins(0,0,0,0);
     pLayout->addWidget(d_ptr->m_pWebView);
     setLayout(pLayout);
 
