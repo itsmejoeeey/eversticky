@@ -33,8 +33,9 @@ NoteScrollArea::NoteScrollArea(QWidget *context) : QScrollArea(context)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setWidgetResizable(true);
 
-    QWidget *scrollContainer = new QWidget();
-    dockLayout = new QVBoxLayout();
+    QWidget *scrollContainer = new QWidget(this);
+    scrollContainer->setObjectName("NoteScrollAreaContainer");
+    dockLayout = new QVBoxLayout(scrollContainer);
     dockLayout->setSpacing(0);
     dockLayout->setContentsMargins(QMargins());
     dockLayout->setAlignment(Qt::AlignTop);
