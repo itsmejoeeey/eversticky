@@ -50,9 +50,17 @@ QScrollBar
  *  Widget styles
  */
 
+#NoteHeader #NoteHeaderTextEdit,
+#NoteScrollArea,
+#NoteScrollAreaContainer,
 #NoteTitleBar QToolButton
 {
+    /* Some widgets should have transparent background */
     background: transparent;
+}
+
+#NoteTitleBar QToolButton
+{
     border: transparent;
     padding: 5px;
     color:#000000;
@@ -66,7 +74,6 @@ QScrollBar
 
 #NoteHeader #NoteHeaderTextEdit
 {
-    background: transparent;
     border: 0px;
     color: #000000;
     font-size: 11pt;
@@ -107,5 +114,5 @@ QScrollBar::add-line:vertical
 
 QScrollBar::sub-line:vertical
 {
-    height: 0 px;
+    height: 0px;
 }
