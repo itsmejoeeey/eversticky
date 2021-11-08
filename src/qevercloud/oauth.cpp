@@ -15,6 +15,7 @@
 #ifdef QEVERCLOUD_USE_QT_WEB_ENGINE
 #include <QWebEngineView>
 #include <QWebEngineHistory>
+#include <QWebEngineProfile>
 #else
 #include <QWebView>
 #include <QWebSettings>
@@ -133,6 +134,7 @@ void EvernoteOAuthWebView::authenticate(QString host, QString consumerKey, QStri
     Q_D(EvernoteOAuthWebView);
     d->m_host = host;
     d->m_isSucceeded = false;
+    d->page()->profile()->defaultProfile()->setHttpAcceptLanguage(QString("en"));
     d->setHtml(QStringLiteral(""));
     d->history()->clear();
 
