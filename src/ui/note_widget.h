@@ -42,8 +42,11 @@ public:
     void testFunc();
 
     void syncModel();
-    Note* note;
+
     void bringToForeground();
+
+    qevercloud::Guid getNoteGuid();
+    void updateNoteGuid(qevercloud::Guid newGuid);
 
     void scrollNote(QPoint amount);
 
@@ -60,7 +63,7 @@ private slots:
 
 private:
     NoteController *parent;
-
+    Note* note;
     NoteWebview * noteWebview;
     NoteHeader * noteHeader;
     NoteScrollArea *noteScrollArea;

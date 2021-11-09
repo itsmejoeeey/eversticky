@@ -260,3 +260,18 @@ void NoteWidget::setNoteSize()
         resize(400,400);
     }
 }
+
+qevercloud::Guid NoteWidget::getNoteGuid()
+{
+    return note->guid;
+}
+
+void NoteWidget::updateNoteGuid(qevercloud::Guid newGuid)
+{
+    qevercloud::Guid oldGuid = note->guid;
+    note->guid = newGuid;
+
+    // Remove old note dimensions, and create entry for new note GUID.
+    Cache::deleteFromNotesTable(oldGuid);
+    parent->updateNoteDimensions(note->guid, this->x(), this->y(), this->width(), this->height());
+}

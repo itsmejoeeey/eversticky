@@ -72,6 +72,8 @@ private:
     int screens;
     int screenWidth;
     int screenHeight;
+
+    bool checkNoteCreated(qevercloud::Guid noteGuid);
 };
 
 #endif // NOTECONTROLLER_H

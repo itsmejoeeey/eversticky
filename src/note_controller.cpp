@@ -99,28 +99,38 @@ void NoteController::login()
         state = tAuthState::AUTHORISED;
 
         trayIcon->updateTrayMenu();
+
+        NoteSyncController::syncFromServer();
         showNotes();
     }
 }
 
 void NoteController::showNotes()
 {
-    NoteSyncController::syncFromServer();
-
     std::vector<Note> sync_results = Cache::retrieveAllFromSyncTable();
     qInfo() << "Found" << sync_results.size() << "notes.";
     std::vector<Note>::iterator n = sync_results.begin();
-    while(n != sync_results.end()) {
+    while(n != sync_results.end())
+    {
         Note note = *n;
+
+        // Don't bother showing note if a NoteWidget already exists for the Guid.
+        if(checkNoteCreated(note.guid)) {
+            n++;
+            continue;
+        }
+
         queueItem item = Cache::retrieveFromQueueTable(note.guid);
         noteItem size = Cache::retrieveFromNotesTable(note.guid, this->screens, this->screenWidth, this->screenHeight);
 
-        if(item.id == NULL && item.type == NULL) {
-            // Not in queue
-            Note *pointer_note = new Note(note.guid, note.usn, note.title, NoteFormatter(note.content).standardiseInput());
-            createNote(pointer_note, size);
-        } else if(item.type == "UPDATE") {
+        // If note exists in the queue table, show the changed content.
+        if(item.type == "UPDATE") {
             Note *pointer_note = new Note(note.guid, note.usn, item.note.title, NoteFormatter(item.note.content).standardiseInput());
+            createNote(pointer_note, size);
+        }
+        // Otherwise, show the original note.
+        else {
+            Note *pointer_note = new Note(note.guid, note.usn, note.title, NoteFormatter(note.content).standardiseInput());
             createNote(pointer_note, size);
         }
         n++;
@@ -129,14 +139,20 @@ void NoteController::showNotes()
     // Also open new notes in queue that haven't been synced yet
     std::vector<queueItem> new_notes = Cache::retrieveNewFromQueueTable();
     std::vector<queueItem>::iterator p = new_notes.begin();
+    while(p != new_notes.end())
+    {
+        Note queuedNote = (*p).note;
 
-    while(p != new_notes.end()) {
-        queueItem item = *p;
-        Note *pointer_note = new Note(item.note.guid, item.note.usn, item.note.title, NoteFormatter(item.note.content).standardiseInput());
+        // Don't bother showing note if a NoteWidget already exists for the Guid.
+        if(checkNoteCreated(queuedNote.guid)) {
+            p++;
+            continue;
+        }
+
+        Note *pointer_note = new Note(queuedNote.guid, queuedNote.usn, queuedNote.title, NoteFormatter(queuedNote.content).standardiseInput());
         createNote(pointer_note);
         p++;
     }
-
 }
 
 void NoteController::syncAllNoteModels()
@@ -153,7 +169,8 @@ void NoteController::bringAllToFront()
     }
 }
 
-void NoteController::updateNoteDimensions(qevercloud::Guid guid, int x, int y, int width, int height) {
+void NoteController::updateNoteDimensions(qevercloud::Guid guid, int x, int y, int width, int height)
+{
     Cache::insertNotesTable(guid, this->screens, this->screenWidth, this->screenHeight, x, y, width, height);
 }
 
@@ -168,21 +185,18 @@ void NoteController::periodicUpdate()
     std::vector<GuidMap> changes = NoteSyncController::syncChanges();
 
     // If new notes have been created on sync, the local GUID needs to be updated to the the notes new
-    // GUID assigned by Evernote.
+    // Guid assigned by Evernote.
     foreach(NoteWidget *note, notes) {
         foreach(GuidMap change, changes) {
-            if(note->note->guid == change.local_guid) {
-                // Wrote this many moons ago. Can't remember why this is necessary.
-                if(change.local_guid.toStdString().substr(0,5) != "LOCAL") {
-                    Note* old_note = new Note(Cache::retrieveFromSyncTable(change.local_guid));
-                    createNote(old_note);
-                }
-                note->note->guid = change.official_guid;
-            }
+            if(note->getNoteGuid() == change.local_guid)
+                note->updateNoteGuid(change.official_guid);
         }
     }
 
     syncAllNoteModels();
+
+    // Show any new notes
+    showNotes();
 }
 
 void NoteController::logout()
@@ -211,4 +225,15 @@ void NoteController::logout()
 bool NoteController::isAuthorised()
 {
     return (state == tAuthState::AUTHORISED);
+}
+
+bool NoteController::checkNoteCreated(qevercloud::Guid noteGuid)
+{
+    foreach(NoteWidget *note, notes) {
+        if(note->getNoteGuid() == noteGuid) {
+            return true;
+        }
+    }
+
+    return false;
 }

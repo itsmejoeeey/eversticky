@@ -168,10 +168,6 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
                     item.note.title.append(" [CONFLICTED CHANGE ON " + QDate::currentDate().toString("dd.MM.yyyy") + "]");
 
                     qevercloud::Guid createdNoteGuid = syncCreateNote(item.note);
-                    changes.push_back(GuidMap({
-                        .local_guid = item.note.guid,
-                        .official_guid = createdNoteGuid
-                    }));
                     createdNotes++;
                 }
             }
@@ -199,6 +195,7 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
 
     qInfo() << "Created" << createdNotes << "note(s), deleted" << deletedNotes << "note(s), updated" << updatedNotes << "note(s).";
 
+    // Need to sync again to ensure sync table reflects created and deleted notes.
     syncFromServer();
 
     return changes;
