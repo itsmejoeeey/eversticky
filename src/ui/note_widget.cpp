@@ -91,7 +91,6 @@ NoteWidget::NoteWidget(NoteController *parent, Note* note, noteItem size) : pare
     connect(noteHeader, &NoteHeader::textUpdated, this, &NoteWidget::titleTextUpdated);
     connect(noteWebview, &NoteWebview::ensureWebviewCaretVisible, this, &NoteWidget::scrollToWebviewCaret);
     connect(noteWebview, &NoteWebview::initialNoteLoad, this, &NoteWidget::updateUI);
-    connect(noteWebview, &NoteWebview::scrollEvent, noteScrollArea, &NoteScrollArea::scrollNote);
     connect(noteWebview, &NoteWebview::textUpdated, this, &NoteWidget::contentTextChanged);
 
 

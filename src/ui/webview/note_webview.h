@@ -41,7 +41,6 @@ public slots:
 signals:
     void textUpdated(QString newText);
     void initialNoteLoad();
-    void scrollEvent(int dx, int dy);
     void ensureWebviewCaretVisible(int caretY);
     void noteLoaded();
 
@@ -51,7 +50,7 @@ private:
 
     void openBlankPage();
 
-    void wheelEvent(QWheelEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
 #endif // NOTE_WEBVIEW_H

@@ -35,15 +35,13 @@ public:
 
     void addWidget(QWidget *widget);
 
-public slots:
-    void scrollNote(int dx, int dy);
-
 signals:
     void noteScrollChanged(int x, int y);
 
 private:
     QVBoxLayout *dockLayout;
-}
-;
+    void scrollNote(int dx, int dy);
+    void wheelEvent(QWheelEvent *event);
+};
 
 #endif // NOTESCROLLAREA_H

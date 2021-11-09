@@ -57,6 +57,8 @@ NoteWebview::NoteWebview(QWidget *context) : QWebEngineView(context)
     connect(jsInterface, &JsInterface::textUpdated, this, &NoteWebview::textUpdated);
     connect(jsInterface, &JsInterface::ensureWebviewCaretVisible, this, &NoteWebview::ensureWebviewCaretVisible);
 
+    installEventFilter(this);
+
     openBlankPage();
 }
 
@@ -105,11 +107,28 @@ void NoteWebview::setText(QString text)
     jsInterface->setInnerHtml(text);
 }
 
-
-void NoteWebview::wheelEvent(QWheelEvent *event)
+bool NoteWebview::eventFilter(QObject*, QEvent *event)
 {
-    QPoint amount = event->pixelDelta();
-    emit scrollEvent(amount.rx(), amount.ry());
+    // Would have rather used wheelEvent(), but on some Qt versions (such as Qt 5.12.8 default on Ubuntu 20.04)
+    // wheel events aren't caught by the QWebEngineView itself. Need to attach an event filter to child QWidgets that appear
+    // during page load.
+    // https://bugreports.qt.io/browse/QTBUG-43602
 
-    event->ignore();
+    if (event->type() == QEvent::ChildAdded)
+    {
+        // Attach event filter to all children as they appear
+        QChildEvent *e = static_cast<QChildEvent *>(event);
+        QObject *child = e->child();
+        child->installEventFilter(this);
+
+        return true;
+    }
+
+    if (event->type() == QEvent::Wheel)
+    {
+        // Consume wheel event so it can be handled by NoteScrollArea
+        return true;
+    }
+
+    return false;
 }

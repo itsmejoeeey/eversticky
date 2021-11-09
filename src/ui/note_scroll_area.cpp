@@ -57,3 +57,19 @@ void NoteScrollArea::scrollNote(int dx, int dy)
     const int y = verticalScrollBar()->value() - dy;
     verticalScrollBar()->setValue( y );
 }
+
+void NoteScrollArea::wheelEvent(QWheelEvent *event)
+{
+    QPoint numPixels = event->pixelDelta();
+    QPoint numDegrees = event->angleDelta();
+
+    if (!numPixels.isNull()) {
+        scrollNote(numPixels.rx(), numPixels.ry());
+    } else if (!numDegrees.isNull()) {
+        // May need changing. I left this because I noticed numPixels and numDegrees
+        // were identical on my system.
+        scrollNote(numDegrees.rx(), numDegrees.ry());
+    }
+
+    event->accept();
+}
