@@ -108,7 +108,6 @@ void NoteController::login()
 void NoteController::showNotes()
 {
     std::vector<Note> sync_results = Cache::retrieveAllFromSyncTable();
-    qInfo() << "Found" << sync_results.size() << "notes.";
     std::vector<Note>::iterator n = sync_results.begin();
     while(n != sync_results.end())
     {

@@ -234,6 +234,8 @@ void NoteSyncController::syncFromServer()
         qevercloud::Note note = noteStore.getNote(metaNote.guid, true, false, false, false);
         Cache::insertSyncTable(Note(metaNote.guid, metaNote.updateSequenceNum, note.title, NoteFormatter(note.content).standardiseInput()));
     }
+
+    qInfo() << "Found" << noteMetadata.notes.size() << "notes.";
 }
 
 qevercloud::Guid NoteSyncController::syncCreateNote(Note note)
