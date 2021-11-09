@@ -228,6 +228,10 @@ void NoteWidget::syncModel()
 
 void NoteWidget::bringToForeground()
 {
+    // All three calls were needed to ensure window is always brought to front
+    // https://stackoverflow.com/a/10808934/3213602
+    this->setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+    this->raise();
     this->activateWindow();
 }
 
