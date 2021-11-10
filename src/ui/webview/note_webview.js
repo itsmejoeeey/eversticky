@@ -29,6 +29,24 @@ function domChanged() {
     parentWebEngine.domChanged(new XMLSerializer().serializeToString(content));
 }
 
+function checkIfOnlyChildOfNode(parentNode, childNode)
+{
+    let node = childNode;
+
+    while(node !== parentNode) {
+        node = node.parentNode;
+        if(node.children.length > 1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function trimAllLineBreaks(string)
+{
+    return string.replace(/[\n\r]/g, "");
+}
+
 function main() {
     // Allow content of webview to be user-editable
     document.documentElement.contentEditable = true;
@@ -36,8 +54,6 @@ function main() {
 
     new QWebChannel(qt.webChannelTransport, function (channel) {
         parentWebEngine = channel.objects.parentWebEngine;
-
-
 
         // Declare note observers
         var observer = new MutationObserver(function()
@@ -97,8 +113,9 @@ function main() {
                 if (event.key === "Backspace" || event.key === "Delete") {
                     // If only a single empty div left in note when backspacing, prevent default
                     // action from deleting the note parent node.
-                    if(content.children.length == 1 &&
-                       selection.focusNode.outerHTML === "<div><br></div>")
+                    if(content.children.length === 1 && // Quick check to prevent unnecessary traversal of the node tree
+                       trimAllLineBreaks(selection.focusNode.outerHTML) === "<div><br></div>" &&
+                       checkIfOnlyChildOfNode(content, selection.focusNode))
                     {
                         event.preventDefault();
                     }
@@ -142,6 +159,7 @@ function main() {
                     parentWebEngine.domNewlineInserted(caretPosition.top);
                 }
             });
+
 
             // Disable note zoom
             window.addEventListener("wheel", function(event)
