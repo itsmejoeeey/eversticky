@@ -44,6 +44,10 @@ function checkIfOnlyChildOfNode(parentNode, childNode)
 
 function trimAllLineBreaks(string)
 {
+    if(string == null) {
+        return;
+    }
+
     return string.replace(/[\n\r]/g, "");
 }
 
