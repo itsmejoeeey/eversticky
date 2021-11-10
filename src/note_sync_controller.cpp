@@ -181,9 +181,23 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
             n++;
         }
     }
+    // Provide more detail when an exception occurs that the user may be able to resolve
+    // The handling of errors will be changed when the QEverCloud is updated to the latest version.
+    catch(qevercloud::EDAMUserException e) {
+        qCritical() << "An exception occured while syncronising changes with Evernote servers. Some changes may not have synchronised.";
+
+        // Explicitly catch exception caused by malformed note
+        if(e.errorCode == qevercloud::EDAMErrorCode::ENML_VALIDATION) {
+            qCritical() << "Exception reason:" << "\"Content of a submitted note was malformed\"";
+        } else {
+            qCritical() << "Exception error code:" << e.errorCode;
+        }
+
+        return changes;
+    }
     // Catch all Evernote exceptions
     catch(qevercloud::EverCloudException e) {
-        qCritical() << "An exception occured while syncronising changes with Evernote servers.";
+        qCritical() << "An exception occured while syncronising changes with Evernote servers. Some changes may not have synchronised.";
         qCritical() << "Exception message:" << e.exceptionData()->errorMessage;
 
         // Stop prematurely. Hopefully next time will succeed.
