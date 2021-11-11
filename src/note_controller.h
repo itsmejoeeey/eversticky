@@ -73,7 +73,8 @@ private:
     int screenWidth;
     int screenHeight;
 
-    bool checkNoteCreated(qevercloud::Guid noteGuid);
+    bool isNoteCreated(qevercloud::Guid noteGuid);
+    bool isUnsyncedChanges();
 };
 
 #endif // NOTECONTROLLER_H

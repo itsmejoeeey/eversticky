@@ -114,7 +114,7 @@ void NoteController::showNotes()
         Note note = *n;
 
         // Don't bother showing note if a NoteWidget already exists for the Guid.
-        if(checkNoteCreated(note.guid)) {
+        if(isNoteCreated(note.guid)) {
             n++;
             continue;
         }
@@ -143,7 +143,7 @@ void NoteController::showNotes()
         Note queuedNote = (*p).note;
 
         // Don't bother showing note if a NoteWidget already exists for the Guid.
-        if(checkNoteCreated(queuedNote.guid)) {
+        if(isNoteCreated(queuedNote.guid)) {
             p++;
             continue;
         }
@@ -200,23 +200,38 @@ void NoteController::periodicUpdate()
 
 void NoteController::logout()
 {
-    state = tAuthState::UNAUTHORISED;
+    // Show a confirmation box before continuing if the user has unsynced changes
+    if(isUnsyncedChanges())
+    {
+        QMessageBox confirmationBox;
+        confirmationBox.setIcon(QMessageBox::Question);
+        QIcon icon(":/icon/appicon.ico");
+        confirmationBox.setWindowIcon(icon);
+        confirmationBox.setWindowTitle("Confirm Logout");
+        confirmationBox.setText("You have unsynced changes which will be lost unless you sync them. Do you want to continue.");
+        confirmationBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
 
+        // Return from function immediately (without logging out) if the user doesn't press 'Ok'
+        if(confirmationBox.exec() != QMessageBox::Ok)
+            return;
+    }
+
+    state = tAuthState::UNAUTHORISED;
     Settings::deleteAllSessionSettings();
     Cache::deleteDatabase();
 
-    QMessageBox confirmationBox;
-    confirmationBox.setIcon(QMessageBox::Information);
+    QMessageBox informationBox;
+    informationBox.setIcon(QMessageBox::Information);
     QIcon icon(":/icon/appicon.ico");
-    confirmationBox.setWindowIcon(icon);
-    confirmationBox.setWindowTitle("Information");
-    confirmationBox.setText("This application will now exit.");
-    confirmationBox.setStandardButtons(QMessageBox::Ok);
+    informationBox.setWindowIcon(icon);
+    informationBox.setWindowTitle("Information");
+    informationBox.setText("This application will now exit.");
+    informationBox.setStandardButtons(QMessageBox::Ok);
 
-    // Only delete note and close window if user confirms 'YES'
-    if(confirmationBox.exec() == QMessageBox::Ok)
+    // Close application when the uer pressed 'Ok'
+    if(informationBox.exec() == QMessageBox::Ok)
     {
-        confirmationBox.close();
+        informationBox.close();
         QCoreApplication::quit();
     }
 }
@@ -226,7 +241,7 @@ bool NoteController::isAuthorised()
     return (state == tAuthState::AUTHORISED);
 }
 
-bool NoteController::checkNoteCreated(qevercloud::Guid noteGuid)
+bool NoteController::isNoteCreated(qevercloud::Guid noteGuid)
 {
     foreach(NoteWidget *note, notes) {
         if(note->getNoteGuid() == noteGuid) {
@@ -235,4 +250,9 @@ bool NoteController::checkNoteCreated(qevercloud::Guid noteGuid)
     }
 
     return false;
+}
+
+bool NoteController::isUnsyncedChanges()
+{
+    return (Cache::countQueueTableRows() > 0);
 }

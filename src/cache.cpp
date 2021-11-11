@@ -156,6 +156,17 @@ std::vector<Note> Cache::retrieveAllFromSyncTable()
     return results;
 }
 
+int Cache::countQueueTableRows()
+{
+    QSqlDatabase db = openDatabase();
+    QSqlQuery query(db);
+    query.prepare("SELECT COUNT(*) FROM queue");
+    query.exec();
+
+    query.next();
+    return query.value(0).toInt();
+}
+
 void Cache::insertQueueTable(Note note)
 {
     QSqlDatabase db = openDatabase();
@@ -201,11 +212,6 @@ void Cache::insertQueueTable(Note note)
         query2.bindValue(":cleared", 0);
         query2.exec();
     }
-
-
-
-
-    //db.close();
 }
 
 std::vector<queueItem> Cache::retrieveAllFromQueueTable()

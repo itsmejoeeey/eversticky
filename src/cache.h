@@ -54,6 +54,7 @@ public:
     static Note retrieveFromSyncTable(qevercloud::Guid guid);
     static std::vector<Note> retrieveAllFromSyncTable();
 
+    static int countQueueTableRows();
     static void deleteQueueTable(Note note);
     static void deleteFromQueueTable(int id);
     static void emptyQueueTable();
