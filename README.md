@@ -1,10 +1,8 @@
-# EverSticky
+# <img src="https://i.imgur.com/A1SvZTi.png" width="48"> EverSticky
 
-<img src="https://i.imgur.com/KrAfarG.png" width="400">
+<img src="https://i.imgur.com/WzwJvRG.png" width="450">
 
-A Linux open-source sticky note client that syncs to Evernote 
-
-*(early alpha)*
+A Linux open-source sticky note client that syncs to Evernote. Displays rich text formatting.
 
 ## Installation and running
 | Binaries            |
@@ -15,7 +13,7 @@ Install instructions coming soon...
 
 ### Compiling from source
 Dependencies:
-* Qt *>= 5*
+* Qt *>= 5.10.0*
 * libxpm / libxpm-dev
 
 > IMPORTANT NOTE: You will need a production Evernote API key to compile the application and be able to see and alter notes you currently store on Evernote. This secret (along with the desired domain and key) needs to be provided at the top of `./src/eversticky.pro`.
@@ -29,23 +27,10 @@ make
 ```
 This produces the executable binary `./eversticky` in the current directory.
 
-## TODO
-Feel free to tackle one and make a PR ;))
-
-- [ ] Provide binaries and instructions for popular distributions
-- [ ] Change the `./eversticky.pro` file so build paths, desktop files, etc are correct and managed automatically
-- [ ] Implement a proper version numbering scheme
-- [ ] Fix `QSqlQuery::value: not positioned on a valid record` errors on login
-- [ ] Ensure duplicate entries are not being added to the `notes` table in the cache database
-- [ ] Provide a settings pane that allows the user to set sync interval and 'start on startup' state
-- [ ] Implement more robust handling of note formatting when syncing to/from Evernote. Currently unexpected behaviour (such as inserting numerous newlines) is experienced when non-plain text styles are in use.
-- [ ] Ensure it is impossible for the code to overflow
-- [ ] Support for Windows/Mac OSX
-
 ## Bugs
-This project is still in its early days and bugs are expected (some are known above in the TODO section). Don't hesitate to open an issue if you encounter some unexpected behaviour.
+This project is still in its early days and bugs are expected. Open an issue if you encounter some unexpected behaviour (after making sure one hasn't already been raised).
 
 ## License
-`src/qevercloud` licensed under MIT terms. Consists of `v4.0.0` release from @d1vanov's fork (https://github.com/d1vanov/QEverCloud)
+`src/qevercloud` licensed under MIT terms. Consists of `v4.0.0` release from @d1vanov's fork (https://github.com/d1vanov/QEverCloud), plus two patches ([66671bf](https://github.com/itsmejoeeey/eversticky/commit/66671bf4ffc03c4d7ed64227249971be2b35a492), [74b9b98](https://github.com/itsmejoeeey/eversticky/commit/74b9b98d67a9370a34e9b0d0a073482c0657bb3f)).
 
 For all other code see `LICENSE`
