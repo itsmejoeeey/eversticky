@@ -5,18 +5,24 @@
 A Linux open-source sticky note client that syncs to Evernote. Displays rich text formatting.
 
 ## Installation and running
-| Binaries            |
-| ------------------- |
-| Coming soon...      |
 
-Install instructions coming soon...
+Supports Ubuntu 20.04 and greater. Unlikely to work on older Ubuntu versions.
+
+### Install on Ubuntu
+
+```
+wget https://github.com/itsmejoeeey/eversticky/releases/download/v0.95.0/eversticky_0.95.0-1_amd64.deb
+sudo apt install ./eversticky_0.95.0-1_amd64.deb
+```
 
 ### Compiling from source
-Dependencies:
-* Qt *>= 5.10.0*
-* libxpm / libxpm-dev
 
 > IMPORTANT NOTE: You will need a production Evernote API key to compile the application and be able to see and alter notes you currently store on Evernote. This secret (along with the desired domain and key) needs to be provided at the top of `./src/eversticky.pro`.
+
+Install build dependencies:
+```
+sudo apt install build-essential qt5-default qtwebengine5-dev libqt5x11extras5-dev libxpm-dev
+```
 
 From the root of the repo run the following commands:
 ```
