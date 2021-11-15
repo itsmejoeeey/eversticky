@@ -15,6 +15,10 @@ wget https://github.com/itsmejoeeey/eversticky/releases/download/v0.95.0/eversti
 sudo apt install ./eversticky_0.95.0-1_amd64.deb
 ```
 
+### Install on Arch Linux
+
+Available in the [Arch User Repository](https://aur.archlinux.org/packages/eversticky/).
+
 ### Compiling from source
 
 > IMPORTANT NOTE: You will need a production Evernote API key to compile the application and be able to see and alter notes you currently store on Evernote. This secret (along with the desired domain and key) needs to be provided at the top of `./src/eversticky.pro`.
