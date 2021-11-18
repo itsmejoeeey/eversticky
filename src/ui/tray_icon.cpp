@@ -80,7 +80,7 @@ bool TrayIcon::checkUpdateAvailable()
     QJsonDocument doc = QJsonDocument::fromJson(response->readAll());
     response->deleteLater();
 
-    QString current_tag = QString::fromStdString(APP_VERSION);
+    QString current_tag = "v" + QString::fromStdString(APP_VERSION);
     QString github_tag = doc.object().toVariantMap()["tag_name"].toString();
 
     if(github_tag.size() != 0 && github_tag > current_tag) {
