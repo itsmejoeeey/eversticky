@@ -8,16 +8,7 @@ A Linux open-source sticky note client that syncs to Evernote. Displays rich tex
 
 Supports Ubuntu 20.04 and greater. Unlikely to work on older Ubuntu versions.
 
-### Install on Ubuntu
-
-```
-wget https://github.com/itsmejoeeey/eversticky/releases/download/v0.95.0/eversticky_0.95.0-1_amd64.deb
-sudo apt install ./eversticky_0.95.0-1_amd64.deb
-```
-
-### Install on Arch Linux
-
-Available in the [Arch User Repository](https://aur.archlinux.org/packages/eversticky/).
+[Find the Linux installation guide here.](https://eversticky.joeeey.com/install)
 
 ### Compiling from source
 
