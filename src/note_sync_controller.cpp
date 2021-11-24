@@ -126,10 +126,14 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
 {
     syncFromServer();
 
+    // Return immediately if there are no changes to sync.
+    if(Cache::countQueueTableRows() == 0) {
+        return {};
+    }
+
     qInfo() << "Synchronising note changes to Evernote.";
 
     std::vector<GuidMap> changes;
-
     std::vector<queueItem> queue = Cache::retrieveAllFromQueueTable();
     std::vector<queueItem>::iterator n = queue.begin();
 

@@ -201,7 +201,7 @@ void NoteController::periodicUpdate()
 void NoteController::logout()
 {
     // Show a confirmation box before continuing if the user has unsynced changes
-    if(isUnsyncedChanges())
+    if(Cache::countQueueTableRows() > 0)
     {
         QMessageBox confirmationBox;
         confirmationBox.setIcon(QMessageBox::Question);
@@ -250,9 +250,4 @@ bool NoteController::isNoteCreated(qevercloud::Guid noteGuid)
     }
 
     return false;
-}
-
-bool NoteController::isUnsyncedChanges()
-{
-    return (Cache::countQueueTableRows() > 0);
 }
