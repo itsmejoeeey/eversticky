@@ -28,6 +28,7 @@ int main(int argc, char **argv)
 {
     QApplication app (argc, argv);
     app.setApplicationName("eversticky");
+    app.setQuitOnLastWindowClosed(false);
 
     // Show timestamp in logging output
     qSetMessagePattern("[%{time}] %{message}");
