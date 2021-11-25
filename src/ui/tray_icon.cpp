@@ -163,5 +163,5 @@ void TrayIcon::exitAction()
 
 void TrayIcon::logout()
 {
-    parent->logout();
+    parent->showLogoutDialog();
 }

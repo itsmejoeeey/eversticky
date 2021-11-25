@@ -33,20 +33,30 @@ typedef enum tAuthState {
     AUTHORISED
 } tAuthState;
 
-class NoteSyncController
+class NoteSyncController : public QObject
 {
-public:
-    static bool authenticate();
+Q_OBJECT
 
-    static std::vector<GuidMap> syncChanges();
-    static void syncFromServer();
+public:
+    NoteSyncController(QString authToken, qevercloud::Guid notebookGuid, QString notestoreUrl);
+
+    static tAuthState login();
+
+    std::vector<GuidMap> syncChanges();
+    bool syncFromServer();
+
+signals:
+    void authInvalid();
 
 private:
-    static qevercloud::Guid getNotebookGUID();
+    qevercloud::Guid notebookGuid;
+    qevercloud::NoteStore* noteStore;
 
-    static qevercloud::Guid syncCreateNote(Note note);
-    static void syncDeleteNote(Note note);
-    static void syncUpdateNote(Note note);
+    static qevercloud::Guid createOrGetNotebookGUID(QString authToken, QString notestoreUrl);
+
+    qevercloud::Guid syncCreateNote(Note note);
+    void syncDeleteNote(Note note);
+    void syncUpdateNote(Note note);
 };
 
 #endif // NOTESYNCCONTROLLER_H

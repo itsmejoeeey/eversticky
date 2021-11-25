@@ -51,10 +51,11 @@ public:
     void syncAllNoteModels();
 
     void bringAllToFront();
+    void closeAllNotes();
     void updateNoteDimensions(qevercloud::Guid guid, int x, int y, int width, int height);
 
     void logoutPrepare();
-    void logout();
+    void showLogoutDialog();
 
 public slots:
     void login();
@@ -64,6 +65,7 @@ public slots:
 private:
     tAuthState state;
 
+    NoteSyncController* noteSyncController;
     TrayIcon *trayIcon;
 
     std::vector<NoteWidget*> notes;
@@ -72,6 +74,9 @@ private:
     int screens;
     int screenWidth;
     int screenHeight;
+
+    void hardLogout();
+    void softLogout();
 
     bool isNoteCreated(qevercloud::Guid noteGuid);
 };

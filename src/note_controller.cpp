@@ -34,12 +34,13 @@
 #include "ui/note_widget.h"
 
 
-NoteController::NoteController(int screens, int screenWidth, int screenHeight) : screens(screens), screenWidth(screenWidth), screenHeight(screenHeight), QObject(), state(tAuthState::UNAUTHORISED)
+NoteController::NoteController(int screens, int screenWidth, int screenHeight) : QObject(), screenHeight(screenHeight), screenWidth(screenWidth), screens(screens), state(tAuthState::UNAUTHORISED)
 {
     trayIcon = new TrayIcon(this);
 
     login();
 
+    // Create a timer to periodically sync notes with Evernote.
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &NoteController::periodicUpdate);
     timer->setTimerType(Qt::VeryCoarseTimer);
@@ -94,15 +95,62 @@ NoteWidget* NoteController::createNote(Note* note_model, noteItem size)
 
 void NoteController::login()
 {
-    if(NoteSyncController::authenticate())
+    // Sets the initial authentication state by checking the saved session settings.
+    if(Settings::getSessionSetting("auth_token").isEmpty() ||
+       Settings::getSessionSetting("notestore_url").isEmpty() ||
+       Settings::getSessionSetting("username").isEmpty())
     {
+        // Do OAuth login
+        state = NoteSyncController::login();
+    } else {
         state = tAuthState::AUTHORISED;
-
-        trayIcon->updateTrayMenu();
-
-        NoteSyncController::syncFromServer();
-        showNotes();
     }
+
+    trayIcon->updateTrayMenu();
+
+    // If the user is now authenticated, create a sync controller with their credentials.
+    if(isAuthorised())
+    {
+        noteSyncController = new NoteSyncController(
+                    Settings::getSessionSetting("auth_token"),
+                    Settings::getSessionSetting("notebook_guid"),
+                    Settings::getSessionSetting("notestore_url")
+        );
+        connect(noteSyncController, &NoteSyncController::authInvalid, this, [this](){
+            // Delete session credentials and show OAuth login.
+            softLogout();
+            login();
+        });
+
+        // Do the first update immediately after login.
+        periodicUpdate();
+    }
+}
+
+// Logout and forget username and all user-data (including unsynced note changes).
+// --> This is used when a user chooses to logout of the application (from the tray icon).
+void NoteController::hardLogout()
+{
+    state = tAuthState::UNAUTHORISED;
+    trayIcon->updateTrayMenu();
+
+    closeAllNotes();
+
+    Settings::deleteAllSessionSettings();
+    Cache::deleteDatabase();
+}
+
+// Logout but remember username and keep user-data (including unsynced note changes).
+// --> This is used when a users auth_token expires. This gives the user a chance to login
+//     again without losing all of their changes.
+void NoteController::softLogout()
+{
+    state = tAuthState::UNAUTHORISED;
+    trayIcon->updateTrayMenu();
+
+    closeAllNotes();
+
+    Settings::deleteCurrentSessionSettings();
 }
 
 void NoteController::showNotes()
@@ -168,6 +216,19 @@ void NoteController::bringAllToFront()
     }
 }
 
+void NoteController::closeAllNotes()
+{
+    std::vector<NoteWidget*>::iterator it = notes.begin();
+    while(it != notes.end())
+    {
+        // Close the NoteWidget window
+        (*it)->close();
+
+        // Erase makes the interator invalid and returns the next iterator
+        it = notes.erase(it);
+    }
+}
+
 void NoteController::updateNoteDimensions(qevercloud::Guid guid, int x, int y, int width, int height)
 {
     Cache::insertNotesTable(guid, this->screens, this->screenWidth, this->screenHeight, x, y, width, height);
@@ -175,13 +236,13 @@ void NoteController::updateNoteDimensions(qevercloud::Guid guid, int x, int y, i
 
 void NoteController::periodicUpdate()
 {
-    // Don't update if not authenticated with Evernote.
+    // Don't update if not authenticated.
     if(!isAuthorised())
     {
         return;
     }
 
-    std::vector<GuidMap> changes = NoteSyncController::syncChanges();
+    std::vector<GuidMap> changes = noteSyncController->syncChanges();
 
     // If new notes have been created on sync, the local GUID needs to be updated to the the notes new
     // Guid assigned by Evernote.
@@ -198,7 +259,7 @@ void NoteController::periodicUpdate()
     showNotes();
 }
 
-void NoteController::logout()
+void NoteController::showLogoutDialog()
 {
     // Show a confirmation box before continuing if the user has unsynced changes
     if(Cache::countQueueTableRows() > 0)
@@ -216,9 +277,7 @@ void NoteController::logout()
             return;
     }
 
-    state = tAuthState::UNAUTHORISED;
-    Settings::deleteAllSessionSettings();
-    Cache::deleteDatabase();
+    hardLogout();
 
     QMessageBox informationBox;
     informationBox.setIcon(QMessageBox::Information);

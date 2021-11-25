@@ -25,26 +25,12 @@
 #include "settings.h"
 
 
-bool NoteSyncController::authenticate()
+/*
+ *  Static functions
+ */
+
+tAuthState NoteSyncController::login()
 {
-    if(!(Settings::getSessionSetting("auth_token") == "" ||
-         Settings::getSessionSetting("notestore_url") == "" ||
-         Settings::getSessionSetting("username") == "" )) {
-        try {
-            qevercloud::UserStore user_store(QString::fromStdString(API_HOST), Settings::getSessionSetting("auth_token"));
-            qevercloud::User user = user_store.getUser();
-            return true;
-        }
-        // Catch all Evernote exceptions
-        catch(qevercloud::EverCloudException e) {
-            qCritical() << "An exception occured while authenticating with Evernote servers.";
-            qCritical() << "Exception message:" << e.exceptionData()->errorMessage;
-
-            // Force the user to reauthenticate.
-            Settings::deleteCurrentSessionSettings();
-        }
-    }
-
     // Open OAuth dialog
     qevercloud::EvernoteOAuthDialog dialog(QString::fromStdString(API_KEY), QString::fromStdString(API_SECRET), QString::fromStdString(API_HOST));
     QIcon icon(":/icon/appicon.ico");
@@ -60,7 +46,7 @@ bool NoteSyncController::authenticate()
         failedBox.setText("Login failed.\n" + dialog.oauthError());
         failedBox.exec();
 
-        return false;
+        return tAuthState::UNAUTHORISED;
     }
 
     QString auth_token = dialog.oauthResult().authenticationToken;
@@ -82,14 +68,15 @@ bool NoteSyncController::authenticate()
     }
     Settings::setSessionSetting("auth_token", auth_token);
     Settings::setSessionSetting("notestore_url", notestore_url);
-    Settings::setSessionSetting("notebook_guid", getNotebookGUID());
+    Settings::setSessionSetting("notebook_guid", createOrGetNotebookGUID(auth_token, notestore_url));
 
-    return true;
+    return tAuthState::AUTHORISED;
 }
 
-qevercloud::Guid NoteSyncController::getNotebookGUID()
+// Check if the user already has a sticky notes notebook. Create one if necessary.
+qevercloud::Guid NoteSyncController::createOrGetNotebookGUID(QString authToken, QString notestoreUrl)
 {
-    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
+    qevercloud::NoteStore noteStore(notestoreUrl, authToken);
     QList<qevercloud::Notebook> notebooks = noteStore.listNotebooks();
 
     bool foundExistingNotebook = false;
@@ -122,12 +109,22 @@ qevercloud::Guid NoteSyncController::getNotebookGUID()
     return notebookID;
 }
 
+
+/*
+ *  Class functions
+ */
+
+NoteSyncController::NoteSyncController(QString authToken, qevercloud::Guid notebookGuid, QString notestoreUrl) : QObject(), notebookGuid(notebookGuid)
+{
+    noteStore = new qevercloud::NoteStore(notestoreUrl, authToken);
+}
+
 std::vector<GuidMap> NoteSyncController::syncChanges()
 {
-    syncFromServer();
+    bool syncSuccess = syncFromServer();
 
-    // Return immediately if there are no changes to sync.
-    if(Cache::countQueueTableRows() == 0) {
+    // Return immediately if sync failed or there are no changes to sync.
+    if(!syncSuccess || Cache::countQueueTableRows() == 0) {
         return {};
     }
 
@@ -190,9 +187,11 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
     catch(qevercloud::EDAMUserException e) {
         qCritical() << "An exception occured while syncronising changes with Evernote servers. Some changes may not have synchronised.";
 
-        // Explicitly catch exception caused by malformed note
-        if(e.errorCode == qevercloud::EDAMErrorCode::ENML_VALIDATION) {
-            qCritical() << "Exception reason:" << "\"Content of a submitted note was malformed\"";
+        if(e.errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED) {
+            qCritical() << "Exception reason:" << "\"Authentication token expired. You will need to login again.\"";
+            emit authInvalid();
+        } else if(e.errorCode == qevercloud::EDAMErrorCode::ENML_VALIDATION) {
+            qCritical() << "Exception reason:" << "\"Content of a submitted note was malformed.\"";
         } else {
             qCritical() << "Exception error code:" << e.errorCode;
         }
@@ -219,16 +218,15 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
     return changes;
 };
 
-void NoteSyncController::syncFromServer()
+// Return true if sync successful
+bool NoteSyncController::syncFromServer()
 {
     Cache::emptySyncTable();
-
-    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
 
     qevercloud::NoteFilter noteFilter;
     noteFilter.order = qevercloud::NoteSortOrder::UPDATE_SEQUENCE_NUMBER;
     noteFilter.ascending = false;
-    noteFilter.notebookGuid = Settings::getSessionSetting("notebook_guid");
+    noteFilter.notebookGuid = notebookGuid;
     noteFilter.inactive = false;
 
     qevercloud::NotesMetadataResultSpec resultSpec;
@@ -238,22 +236,37 @@ void NoteSyncController::syncFromServer()
 
     qevercloud::NotesMetadataList noteMetadata;
     try {
-        noteMetadata = noteStore.findNotesMetadata(noteFilter, 0, 199, resultSpec);
+        noteMetadata = noteStore->findNotesMetadata(noteFilter, 0, 199, resultSpec);
+    }
+    // Provide more detail when an exception occurs that the user may be able to resolve
+    catch(qevercloud::EDAMUserException e) {
+        qCritical() << "An exception occured while syncronising changes with Evernote servers. Some changes may not have synchronised.";
+
+        // Explicitly catch exception caused by an expired session
+        if(e.errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED) {
+            qCritical() << "Exception reason:" << "\"Authentication token expired. You will need to login again.\"";
+            emit authInvalid();
+        } else {
+            qCritical() << "Exception error code:" << e.errorCode;
+        }
+        return false;
     }
     // Exit prematurely on any Evernote exception
     catch (qevercloud::EverCloudException e) {
         qCritical() << "An exception occured while syncronising with Evernote servers.";
         qCritical() << "Exception message:" << e.exceptionData()->errorMessage;
 
-        return;
+        return false;
     }
 
     foreach(qevercloud::NoteMetadata metaNote, noteMetadata.notes) {
-        qevercloud::Note note = noteStore.getNote(metaNote.guid, true, false, false, false);
+        qevercloud::Note note = noteStore->getNote(metaNote.guid, true, false, false, false);
         Cache::insertSyncTable(Note(metaNote.guid, metaNote.updateSequenceNum, note.title, NoteFormatter(note.content).standardiseInput()));
     }
 
     qInfo() << "Found" << noteMetadata.notes.size() << "notes.";
+
+    return true;
 }
 
 qevercloud::Guid NoteSyncController::syncCreateNote(Note note)
@@ -270,8 +283,7 @@ qevercloud::Guid NoteSyncController::syncCreateNote(Note note)
     cleanedNote.content = note.content;
     cleanedNote.notebookGuid = Settings::getSessionSetting("notebook_guid");
 
-    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-    qevercloud::Note created_note = noteStore.createNote(cleanedNote);
+    qevercloud::Note created_note = noteStore->createNote(cleanedNote);
 
     // Return the guid of the newly created note.
     return created_note.guid;
@@ -279,8 +291,7 @@ qevercloud::Guid NoteSyncController::syncCreateNote(Note note)
 
 void NoteSyncController::syncDeleteNote(Note note)
 {
-    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-    noteStore.deleteNote(note.guid);
+    noteStore->deleteNote(note.guid);
 }
 
 void NoteSyncController::syncUpdateNote(Note note)
@@ -291,6 +302,5 @@ void NoteSyncController::syncUpdateNote(Note note)
     cleanedNote.content = note.content;
     cleanedNote.guid = note.guid;
 
-    qevercloud::NoteStore noteStore(Settings::getSessionSetting("notestore_url"), Settings::getSessionSetting("auth_token"));
-    qevercloud::Note created_note = noteStore.updateNote(cleanedNote);
+    qevercloud::Note created_note = noteStore->updateNote(cleanedNote);
 }
