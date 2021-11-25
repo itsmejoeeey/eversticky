@@ -1,5 +1,5 @@
 /*
- * This file is part of the EverSticky project (https://github.com/itsmejoeeey/eversticky).
+ * This file is part of the EverSticky project (https://eversticky.joeeey.com).
  * Copyright (c) 2021 Joey Miller.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -51,7 +51,7 @@ AboutWidget::AboutWidget() : QDialog()
     QLabel *appTitle = new QLabel("<h1>EverSticky</h1>", this);
     QLabel *appVersion = new QLabel("<h3>Version " + QString::fromStdString(APP_VERSION) + "</h3>");
     QLabel *appSubtitle = new QLabel("This project is open source and contributions are welcomed.");
-    QLabel *appDescription = new QLabel("Visit <a href='https://github.com/itsmejoeeey/eversticky'>https://github.com/itsmejoeeey/eversticky</a> for more information or to report a bug or to suggest a new feature.");
+    QLabel *appDescription = new QLabel("Visit <a href='https://eversticky.joeeey.com'>https://eversticky.joeeey.com</a> for more information or to report a bug or to suggest a new feature.");
     appDescription->setOpenExternalLinks(true);
     QLabel *appCopyright = new QLabel("Copyright © 2021 Joey Miller. See 'LICENSE' included with application source for license terms.");
 

@@ -1,5 +1,5 @@
 /*
- * This file is part of the eversticky project (https://github.com/itsmejoeeey/eversticky).
+ * This file is part of the eversticky project (https://eversticky.joeeey.com).
  * Copyright (c) 2021 Joey Miller.
  *
  * This program is free software: you can redistribute it and/or modify
