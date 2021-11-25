@@ -221,8 +221,6 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
 // Return true if sync successful
 bool NoteSyncController::syncFromServer()
 {
-    Cache::emptySyncTable();
-
     qevercloud::NoteFilter noteFilter;
     noteFilter.order = qevercloud::NoteSortOrder::UPDATE_SEQUENCE_NUMBER;
     noteFilter.ascending = false;
@@ -258,6 +256,9 @@ bool NoteSyncController::syncFromServer()
 
         return false;
     }
+
+    // Only empty sync table after a successful retrieve has occured.
+    Cache::emptySyncTable();
 
     foreach(qevercloud::NoteMetadata metaNote, noteMetadata.notes) {
         qevercloud::Note note = noteStore->getNote(metaNote.guid, true, false, false, false);
