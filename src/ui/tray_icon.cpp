@@ -23,6 +23,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMenu>
+#include <QTimer>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
@@ -52,12 +53,9 @@ TrayIcon::TrayIcon(NoteController* parent) : parent(parent), QSystemTrayIcon()
 
     if(Settings::getUserSetting("check_for_updates").toBool() && checkUpdateAvailable())
     {
-        showMessage("Update Available", "A new version of eversticky has been released - click to download.", icon, 5000);
-
-        // Known problems with KDE Plasma
-        // See https://bugreports.qt.io/browse/QTBUG-87329
-        connect(this, &QSystemTrayIcon::messageClicked, this, [](){
-            QDesktopServices::openUrl(QUrl("https://github.com/itsmejoeeey/eversticky/releases"));
+        // Delay showing the notification until the application should be fully loaded (10s later).
+        QTimer::singleShot(10000, this, [this](){
+            showUpdateAvailableNotification();
         });
     }
 }
@@ -67,6 +65,7 @@ TrayIcon::~TrayIcon()
     delete trayMenu;
 }
 
+// Returns true if a newer version of EverSticky is available.
 bool TrayIcon::checkUpdateAvailable()
 {
     QString url = "https://api.github.com/repos/itsmejoeeey/eversticky/releases/latest";
@@ -88,6 +87,17 @@ bool TrayIcon::checkUpdateAvailable()
     }
 
     return false;
+}
+
+void TrayIcon::showUpdateAvailableNotification()
+{
+    showMessage("Update Available", "A new version of eversticky has been released - click to download.", icon(), 5000);
+
+    // TODO: Known problems with KDE Plasma - needs more investigation.
+    // See https://bugreports.qt.io/browse/QTBUG-87329
+    connect(this, &QSystemTrayIcon::messageClicked, this, [](){
+        QDesktopServices::openUrl(QUrl("https://github.com/itsmejoeeey/eversticky/releases"));
+    });
 }
 
 void TrayIcon::updateTrayMenu()

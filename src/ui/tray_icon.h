@@ -34,8 +34,6 @@ public:
     void updateTrayMenu();
 
 private slots:
-    bool checkUpdateAvailable();
-
     void loginAction();
     void createAction();
     void foregroundAction();
@@ -48,6 +46,9 @@ private slots:
 private:
     NoteController *parent;
     QMenu* trayMenu;
+
+    bool checkUpdateAvailable();
+    void showUpdateAvailableNotification();
 
     void createIconMenu(QPoint point);
 };
