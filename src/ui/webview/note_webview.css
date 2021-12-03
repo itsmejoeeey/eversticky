@@ -17,6 +17,10 @@
 
 
 body {
+    /* Use similar default font to Evernote Web */
+    font-family: "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+
     /* Ensures that webview is not scrollable */
     /* Scrolling should be handled by NoteScrollArea */
     overflow: hidden;
