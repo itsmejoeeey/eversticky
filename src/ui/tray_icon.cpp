@@ -49,6 +49,9 @@ TrayIcon::TrayIcon(NoteController* parent) : parent(parent), QSystemTrayIcon()
     updateTrayMenu();
     setContextMenu(trayMenu);
 
+    // Bring notes to foreground on tray icon click.
+    connect(this, &QSystemTrayIcon::activated, this, &TrayIcon::foregroundAction);
+
     show();
 
     if(Settings::getUserSetting("check_for_updates").toBool() && checkUpdateAvailable())
