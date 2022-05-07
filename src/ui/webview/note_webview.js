@@ -96,14 +96,14 @@ function main() {
 
             // Connect event listener to all checkboxes to ensure 'clicked' attribute
             // indicates the state of the checkbox.
-            let checkboxes = document.querySelectorAll("input[type=checkbox]");
+            let checkboxes = document.querySelectorAll("input.en-todo");
             for(var i = 0; i < checkboxes.length; i++) {
                 let checkbox = checkboxes[i];
-                checkbox.addEventListener("change", function(event) {
+                checkbox.addEventListener("click", function(event) {
                     if(event.currentTarget.checked) {
-                        checkbox.setAttribute('checked', 'true');
-                    } else {
                         checkbox.removeAttribute('checked');
+                    } else {
+                        checkbox.setAttribute('checked', 'true');
                     }
                 });
             };

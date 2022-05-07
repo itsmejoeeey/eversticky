@@ -72,8 +72,13 @@ QString NoteFormatter::convertFromEML()
     while(todoElements.size() > 0) {
         QDomElement todoElement = todoElements.at(0).toElement();
 
+        // This is a hacky solution to allow the checkbox to be selected by the user.
         todoElement.setTagName("input");
-        todoElement.setAttribute("type", "checkbox");
+        todoElement.setAttribute("class", "en-todo");
+        // Set the image to an empty pixel (see: https://stackoverflow.com/a/14115340/3213602).
+        // This prevents the 'missing-image' icon from appearing.
+        todoElement.setAttribute("src", "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=");
+        todoElement.setAttribute("type", "image");
 
         // Only keep 'checked' attribute if true, inferred false otherwise.
         QString checked = todoElement.attribute("checked");
@@ -146,8 +151,10 @@ QString NoteFormatter::convertToEML()
         QDomElement element = elements.at(i);
 
         // Convert ENML "en-todo" elements to html checkboxes.
-        if(element.tagName() == "input" && element.attribute("type") == "checkbox") {
+        if(element.tagName() == "input" && element.attribute("class") == "en-todo") {
             element.setTagName("en-todo");
+            element.removeAttribute("class");
+            element.removeAttribute("src");
             element.removeAttribute("type");
         }
 
