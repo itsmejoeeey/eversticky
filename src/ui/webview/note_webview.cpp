@@ -64,7 +64,8 @@ NoteWebview::NoteWebview(QWidget *context) : QWebEngineView(context)
 
 void NoteWebview::updatePageHeight(int newHeight)
 {
-    this->setFixedHeight(newHeight);
+    int pageBottomPadding = 16;
+    this->setFixedHeight(newHeight + pageBottomPadding);
 }
 
 void NoteWebview::openBlankPage()

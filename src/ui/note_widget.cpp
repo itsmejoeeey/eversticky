@@ -76,12 +76,15 @@ NoteWidget::NoteWidget(NoteController *parent, Note* note, noteItem size) : pare
     /*
      *  Main note header and content (webview)
      */
+    int notePadding = 8;
     noteScrollArea = new NoteScrollArea(noteContainer);
 
     noteHeader = new NoteHeader(noteScrollArea);
+    noteHeader->setContentsMargins(notePadding, notePadding, notePadding, 0);
     noteScrollArea->addWidget(noteHeader);
 
     noteWebview = new NoteWebview(noteScrollArea);
+    noteWebview->setContentsMargins(notePadding, notePadding, notePadding, 0);
     noteScrollArea->addWidget(noteWebview);
 
     parentLayout->addWidget(noteScrollArea);
