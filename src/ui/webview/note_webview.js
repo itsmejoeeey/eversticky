@@ -131,11 +131,12 @@ function main() {
 
                     // If selection is inside an element that has a checkbox, we want to insert and focus
                     // a checkbox on a new line.
-                    if(selectionParent.querySelector(":scope > input[type=checkbox]"))
+                    if(selectionParent.querySelector(":scope > input.en-todo"))
                     {
                         // Use the same element tag to contain the new checkbox
                         let newCheckboxParent = document.createElement(selectionParent.tagName);
-                        newCheckboxParent.innerHTML = "<input type=\"checkbox\"><br clear=\"none\">";
+                        // Input element should match the one used in `NoteFormatter::convertFromEML()`
+                        newCheckboxParent.innerHTML = "<input class=\"en-todo\" src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" type=\"image\" /><br clear=\"none\">";
                         selectionParent.parentNode.insertBefore(newCheckboxParent, selectionParent.nextSibling);
 
                         // Create a new selection after the new checkbox

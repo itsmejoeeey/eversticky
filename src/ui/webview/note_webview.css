@@ -31,9 +31,10 @@ input.en-todo {
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
-    height: 16px;
     margin-right: 10px;
     object-fit: scale-down;
+    padding-top: 4px;
+    padding-bottom:4px;
     vertical-align: middle;
     width: 16px;
 }
@@ -46,9 +47,11 @@ ul {
     padding-inline-start: 20px;
 }
 
-#en-note {
+#en-note,
+/* Override default input font style for checkboxes */
+input.en-todo {
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.5em;
 }
 
 .unsupported {
