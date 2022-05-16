@@ -60,36 +60,28 @@ NoteTitleBar::NoteTitleBar(QWidget* parent) : QWidget(parent)
 void NoteTitleBar::mousePressEvent(QMouseEvent* event)
 {
     if(event->button() == Qt::LeftButton) {
-        mouseCursorChanged = false;
-        mousePressPosition = event->pos();
+        // Set 'drag' cursor
+        QApplication::setOverrideCursor(QCursor(Qt::SizeAllCursor));
 
+        mousePressPosition = event->pos();
         mousePressed = true;
     }
 }
 
 void NoteTitleBar::mouseMoveEvent(QMouseEvent* event)
 {
-    if(mousePressed){
-        // Update mouse drag cursor only once per drag
-        if(!mouseCursorChanged) {
-            QApplication::setOverrideCursor(QCursor(Qt::SizeAllCursor));
-            mouseCursorChanged = true;
-        }
-
-        // Calculate the delta between the mouse press position and the current mouse position
-        QPoint mouseDelta = event->pos() - mousePressPosition;
-
-        // Update window position
-        window()->move(window()->pos() + mouseDelta);
+    if(!mousePressed) {
+        return;
     }
+
+    window()->move(event->globalX()-mousePressPosition.x(), event->globalY()-mousePressPosition.y());
 }
 
 void NoteTitleBar::mouseReleaseEvent(QMouseEvent* event)
 {
     // Return cursor to normal cursor (after being changed when window began
-    // moving in NoteTitleBar)
+    // moving in NoteTitleBar::mousePressEvent())
     QApplication::restoreOverrideCursor();
 
     mousePressed = false;
-    mouseCursorChanged = false;
 }
