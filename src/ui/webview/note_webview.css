@@ -15,7 +15,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 body {
     /* Use similar default font to Evernote Web */
     font-family: "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -31,10 +30,10 @@ input.en-todo {
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
+    margin-top: 4px;
+    margin-bottom:4px;
     margin-right: 10px;
     object-fit: scale-down;
-    padding-top: 4px;
-    padding-bottom:4px;
     vertical-align: middle;
     width: 16px;
 }

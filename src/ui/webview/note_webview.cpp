@@ -77,12 +77,19 @@ void NoteWebview::openBlankPage()
     apiFile.close();
     this->page()->runJavaScript(apiScript);
 
+
     // Load note js resource
     QFile jsFile(":/ui/webview/note_webview.js");
     if(!jsFile.open(QIODevice::ReadOnly))
         qCritical() << "Error loading note_webview.js to inject into webview...";
     QString jsScript = QString::fromLatin1(jsFile.readAll());
     this->page()->runJavaScript(jsScript);
+
+    // Load note helpers js resource
+    QFile jsHelperFile(":/ui/webview/note_webview_helpers.js");
+    if(!jsHelperFile.open(QIODevice::ReadOnly))
+        qCritical() << "Error loading note_webview_helpers.js to inject into webview...";
+    QString jsHelperScript = QString::fromLatin1(jsHelperFile.readAll());
 
     // Load note keyhandler js resource
     QFile jsKeyHandlerFile(":/ui/webview/note_webview_keyhandler.js");
@@ -101,6 +108,7 @@ void NoteWebview::openBlankPage()
             <head>\
                 <script>" + apiScript + "</script> \
                 <script>" + jsScript + "</script> \
+                <script>" + jsHelperScript + "</script> \
                 <script>" + jsKeyHandlerScript + "</script> \
                 <style>" + noteCss + "</style> \
             </head> \

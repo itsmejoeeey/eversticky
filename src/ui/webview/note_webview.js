@@ -15,7 +15,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 var content;
 var parentWebEngine;
 
@@ -23,40 +22,12 @@ window.onload = function() {
     main();
 }
 
-function domChanged() {
-    // XMLSerializer needed to ensure string is valid XML
-    // Otherwise, for example, .outerHTML returns <br> instead of <br/>
-    parentWebEngine.domChanged(new XMLSerializer().serializeToString(content));
-}
-
-function checkIfOnlyChildOfNode(parentNode, childNode)
+function main()
 {
-    let node = childNode;
-
-    while(node !== parentNode) {
-        node = node.parentNode;
-        if(node.children.length > 1) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function trimAllLineBreaks(string)
-{
-    if(string == null) {
-        return;
-    }
-
-    return string.replace(/[\n\r]/g, "");
-}
-
-function main() {
     // Allow content of webview to be user-editable
     document.documentElement.contentEditable = true;
 
-
-    new QWebChannel(qt.webChannelTransport, function (channel) {
+    const webChannel = new QWebChannel(qt.webChannelTransport, function (channel) {
         parentWebEngine = channel.objects.parentWebEngine;
 
         // Declare note observers
@@ -98,13 +69,7 @@ function main() {
             let checkboxes = document.querySelectorAll("input.en-todo");
             for(var i = 0; i < checkboxes.length; i++) {
                 let checkbox = checkboxes[i];
-                checkbox.addEventListener("click", function(event) {
-                    if(event.currentTarget.checked) {
-                        checkbox.removeAttribute('checked');
-                    } else {
-                        checkbox.setAttribute('checked', 'true');
-                    }
-                });
+                checkboxAddEventListener(checkbox);
             };
 
             // Attached to window instead of #en-note to ensure we always
@@ -127,4 +92,26 @@ function main() {
         // Notify JsInterface that initial DOM load is complete
         parentWebEngine.domLoaded();
     })
+}
+
+
+/*
+ *
+ */
+function checkboxAddEventListener(checkbox)
+{
+    checkbox.addEventListener("click", function(event) {
+        if(event.currentTarget.checked) {
+            checkbox.removeAttribute('checked');
+        } else {
+            checkbox.setAttribute('checked', 'true');
+        }
+    });
+}
+
+function domChanged()
+{
+    // XMLSerializer needed to ensure string is valid XML
+    // Otherwise, for example, .outerHTML returns <br> instead of <br/>
+    parentWebEngine.domChanged(new XMLSerializer().serializeToString(content));
 }

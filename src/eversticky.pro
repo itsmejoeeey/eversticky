@@ -107,6 +107,7 @@ RESOURCES += \
     resources.qrc \
     ui/webview/note_webview.css \
     ui/webview/note_webview.js \
+    ui/webview/note_webview_helpers.js \
     ui/webview/note_webview_keyhandler.js
 
 LIBS += \
