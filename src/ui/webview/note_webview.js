@@ -117,6 +117,12 @@ function checkboxAddEventListener(checkbox)
             checkbox.setAttribute('checked', 'true');
         }
     });
+
+    // Don't allow right-clicking on checkboxes
+    checkbox.addEventListener("contextmenu", function(event) {
+        event.preventDefault();
+        return;
+    });
 }
 
 function checkCaretYPosChanged(selection)
