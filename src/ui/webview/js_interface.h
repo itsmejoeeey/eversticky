@@ -36,10 +36,10 @@ public:
     void setInnerHtml(QString text);
 
 public slots:
+    void domCaretYPosChanged(int caretY);
     void domChanged(QString newText);
     void domHeightResized(int newDomHeight);
     void domLoaded();
-    void domNewlineInserted(int caretY);
 
 signals:
     void textUpdated(QString newText);

@@ -18,6 +18,10 @@
 var content;
 var parentWebEngine;
 
+var prevCaretY;
+var prevCaretYStart;
+var prevCaretYEnd;
+
 window.onload = function() {
     main();
 }
@@ -59,6 +63,13 @@ function main()
             observer.observe(content, {attributes: true, characterData: true, childList: true, subtree: true});
             resizeObserver.observe(content);
 
+            // Watch for selection changes
+            document.addEventListener("selectionchange", function(event)
+            {
+                const selection = window.getSelection();
+                checkCaretYPosChanged(selection);
+            });
+
 
             /*
              *  Usability enhancements
@@ -78,7 +89,6 @@ function main()
             {
                 handleKeyDownEvent(window, content, event);
             });
-
 
             // Disable note zoom
             window.addEventListener("wheel", function(event)
@@ -107,6 +117,26 @@ function checkboxAddEventListener(checkbox)
             checkbox.setAttribute('checked', 'true');
         }
     });
+}
+
+function checkCaretYPosChanged(selection)
+{
+    const selectionRangeStart = selection.getRangeAt(0).cloneRange();
+    selectionRangeStart.collapse(true);
+    const caretYStart = getCaretPositionAtSelection(selectionRangeStart).top;
+
+    const selectionRangeEnd = selection.getRangeAt(0).cloneRange();
+    selectionRangeEnd.collapse(false);
+    const caretYEnd = getCaretPositionAtSelection(selectionRangeEnd).top;
+
+    if(caretYStart !== prevCaretYStart) {
+        parentWebEngine.domCaretYPosChanged(caretYStart);
+    } else if(caretYEnd !== prevCaretYEnd) {
+        parentWebEngine.domCaretYPosChanged(caretYEnd);
+    }
+
+    prevCaretYStart = caretYStart;
+    prevCaretYEnd = caretYEnd;
 }
 
 function domChanged()

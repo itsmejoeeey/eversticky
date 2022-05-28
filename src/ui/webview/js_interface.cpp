@@ -29,6 +29,11 @@ void JsInterface::log(const QString& str) const
     qInfo() << "Message from js: " << str;
 }
 
+void JsInterface::domCaretYPosChanged(int caretY)
+{
+    emit ensureWebviewCaretVisible(caretY);
+}
+
 void JsInterface::domChanged(QString newText)
 {
     emit textUpdated(newText);
@@ -37,11 +42,6 @@ void JsInterface::domChanged(QString newText)
 void JsInterface::domHeightResized(int newDomHeight)
 {
     emit pageHeightUpdated(newDomHeight);
-}
-
-void JsInterface::domNewlineInserted(int cursorY)
-{
-    emit ensureWebviewCaretVisible(cursorY);
 }
 
 void JsInterface::domLoaded()

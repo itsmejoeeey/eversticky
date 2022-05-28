@@ -50,23 +50,6 @@ function handleKeyDownEvent(window, content, event)
         {
             handleReturnOnCheckbox(event, selection, selectionParent);
         }
-
-        //
-        // Emit signal notifying of new cursor position
-        //
-
-        // Doesn't work with empty newline, need to insert empty span
-        // https://stackoverflow.com/questions/6846230/coordinates-of-selected-text-in-browser-page/6847328#6847328
-        const selectionRange = selection.getRangeAt(0).cloneRange();
-        selectionRange.collapse(true);
-
-        // Insert temporary element so we can get the caret location
-        let span = document.createElement("span");
-        selectionRange.insertNode(span)
-        const caretPosition = span.getClientRects()[0];
-        span.parentNode.removeChild(span);
-
-        parentWebEngine.domNewlineInserted(caretPosition.top);
     }
 }
 
@@ -74,6 +57,7 @@ function handleKeyDownEvent(window, content, event)
 /*
  *  Handlers
  */
+
 function handleReturnOnCheckbox(event, selection, selectionParent)
 {
     // Do nothing if user does a "SHIFT+ENTER"
