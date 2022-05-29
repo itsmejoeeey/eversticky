@@ -46,6 +46,7 @@ private:
     void resizeToFitContent();
 
 protected:
+    void contextMenuEvent(QContextMenuEvent *event);
     bool eventFilter(QObject *object, QKeyEvent *event);
     void keyPressEvent(QKeyEvent *e) override;
 };

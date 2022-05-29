@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include <QAbstractTextDocumentLayout>
+#include <QMenu>
 #include <QTextBlock>
 
 
@@ -32,6 +33,23 @@ NoteHeaderTextEdit::NoteHeaderTextEdit(QWidget *parent) : QPlainTextEdit(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     connect(this, &QPlainTextEdit::textChanged, this, &NoteHeaderTextEdit::textChanged);
+}
+
+void NoteHeaderTextEdit::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu *menu = createStandardContextMenu();
+
+    foreach (QAction *action, menu->actions()) {
+        // Remove 'shortcut' text from action to match context menu of note body
+        QString actionText = action->text();
+        action->setText(actionText.split("\t").at(0));
+
+        action->setIcon(QIcon());
+        action->setIconVisibleInMenu(false);
+    }
+
+    menu->exec(event->globalPos());
+    delete menu;
 }
 
 void NoteHeaderTextEdit::textChanged()
