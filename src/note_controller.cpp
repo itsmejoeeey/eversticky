@@ -221,8 +221,10 @@ void NoteController::showNotes()
             continue;
         }
 
+        noteItem size = Cache::retrieveFromNotesTable(queuedNote.guid, this->screens, this->screenWidth, this->screenHeight);
+
         Note *pointer_note = new Note(queuedNote.guid, queuedNote.usn, queuedNote.title, NoteFormatter(queuedNote.content).standardiseInput());
-        createNote(pointer_note);
+        createNote(pointer_note, size);
         p++;
     }
 }
