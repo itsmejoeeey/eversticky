@@ -18,6 +18,8 @@
 #ifndef CACHE_H
 #define CACHE_H
 
+#include <optional>
+
 #include <QStandardPaths>
 #include <QSqlDatabase>
 
@@ -51,7 +53,7 @@ public:
 
     static void emptySyncTable();
     static void insertSyncTable(Note note);
-    static Note retrieveFromSyncTable(qevercloud::Guid guid);
+    static std::optional<Note> retrieveFromSyncTable(qevercloud::Guid guid);
     static std::vector<Note> retrieveAllFromSyncTable();
 
     static int countQueueTableRows();
@@ -59,7 +61,7 @@ public:
     static void deleteFromQueueTable(int id);
     static void emptyQueueTable();
     static void insertQueueTable(Note note);
-    static queueItem retrieveFromQueueTable(qevercloud::Guid guid);
+    static std::optional<queueItem> retrieveFromQueueTable(qevercloud::Guid guid);
     static std::vector<queueItem> retrieveAllFromQueueTable();
     static std::vector<queueItem> retrieveNewFromQueueTable();
 

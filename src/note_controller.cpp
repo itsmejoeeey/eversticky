@@ -187,13 +187,18 @@ void NoteController::showNotes()
             continue;
         }
 
-        queueItem item = Cache::retrieveFromQueueTable(note.guid);
+        std::optional<queueItem> item = Cache::retrieveFromQueueTable(note.guid);
         noteItem size = Cache::retrieveFromNotesTable(note.guid, this->screens, this->screenWidth, this->screenHeight);
 
-        // If note exists in the queue table, show the changed content.
-        if(item.type == "UPDATE") {
-            Note *pointer_note = new Note(note.guid, note.usn, item.note.title, NoteFormatter(item.note.content).standardiseInput());
-            createNote(pointer_note, size);
+        if(item) {
+            if((*item).type == "UPDATE") {
+                // If note exists in the queue table and has been updated, show the changed content.
+                Note itemNote = (*item).note;
+                Note *pointer_note = new Note(note.guid, note.usn, itemNote.title, NoteFormatter(itemNote.content).standardiseInput());
+                createNote(pointer_note, size);
+            } else {
+                // Otherwise do nothing.
+            }
         }
         // Otherwise, show the original note.
         else {

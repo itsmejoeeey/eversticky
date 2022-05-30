@@ -18,6 +18,8 @@ DEFINES += \
     # The 16-digit API key
     API_SECRET=\\\"XXXXXXXXXXXXXXXX\\\"
 
+CONFIG += c++17
+
 # Ensure Qt WebKit is not required as a dependency
 DEFINES += QEVERCLOUD_USE_QT_WEB_ENGINE
 

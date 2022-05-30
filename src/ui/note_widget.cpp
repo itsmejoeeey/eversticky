@@ -217,17 +217,27 @@ void NoteWidget::contentTextChanged(QString newText)
 
 void NoteWidget::syncModel()
 {
-    Note *updatedNote = new Note(Cache::retrieveFromSyncTable(this->note->guid));
+    std::optional<Note> updatedNote = Cache::retrieveFromSyncTable(this->note->guid);
+    std::optional<queueItem> queuedNote = Cache::retrieveFromQueueTable(this->note->guid);
 
     // If note doesn't exist in sync table (all fields are NULL), note has been deleted.
-    if(updatedNote->guid == NULL  && updatedNote->usn == NULL &&
-       updatedNote->title == NULL && updatedNote->content == NULL){
+    if(!queuedNote && !updatedNote) {
         // Close the window
         this->close();
+        return;
+    } else if(queuedNote) {
+        if((*queuedNote).type == "DELETE") {
+            this->close();
+            return;
+        }
+        // If note exists in the queue table (and isn't deleted), show the changed content.
+        this->note = new Note((*queuedNote).note);
     } else {
-        this->note = updatedNote;
-        this->updateUI();
+        // Otherwise, show the original note.
+        this->note = new Note(*updatedNote);
     }
+
+    this->updateUI();
 }
 
 void NoteWidget::bringToForeground()

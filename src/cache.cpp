@@ -82,7 +82,7 @@ void Cache::insertSyncTable(Note note)
     query.exec();
 }
 
-Note Cache::retrieveFromSyncTable(qevercloud::Guid guid)
+std::optional<Note> Cache::retrieveFromSyncTable(qevercloud::Guid guid)
 {
     QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
@@ -93,11 +93,11 @@ Note Cache::retrieveFromSyncTable(qevercloud::Guid guid)
     if(query.next()) {
         return Note(query.value(0).toString(), query.value(1).toInt(), query.value(2).toString(), query.value(3).toString());
     } else {
-        return Note(NULL, NULL, NULL, NULL);
+        return std::nullopt;
     }
 }
 
-queueItem Cache::retrieveFromQueueTable(qevercloud::Guid guid)
+std::optional<queueItem> Cache::retrieveFromQueueTable(qevercloud::Guid guid)
 {
     QSqlDatabase db = openDatabase();
     QSqlQuery query(db);
@@ -112,11 +112,7 @@ queueItem Cache::retrieveFromQueueTable(qevercloud::Guid guid)
         item.note = Note(query.value(2).toString(), query.value(3).toInt(), query.value(4).toString(), query.value(5).toString());
         return item;
     } else {
-        queueItem item;
-        item.id = NULL;
-        item.type = "";
-        item.note = Note(NULL, NULL, NULL, NULL);
-        return item;
+        return std::nullopt;
     }
 }
 

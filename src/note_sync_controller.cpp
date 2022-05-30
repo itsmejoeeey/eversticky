@@ -153,7 +153,7 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
             }
             // *- UPDATE note -*
             else if(item.type == "UPDATE") {
-                Note storedNote = Cache::retrieveFromSyncTable(item.note.guid);
+                Note storedNote = *Cache::retrieveFromSyncTable(item.note.guid);
 
                 // Check if the remote note has been changed more recently.
                 // If the USNs match between the the remote note and the changed note, the
