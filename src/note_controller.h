@@ -79,6 +79,8 @@ private:
     void softLogout();
 
     bool isNoteCreated(qevercloud::Guid noteGuid);
+
+    void noteDestroyed(NoteWidget *note);
 };
 
 #endif // NOTECONTROLLER_H

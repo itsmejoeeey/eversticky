@@ -48,6 +48,7 @@ NoteWidget::NoteWidget(NoteController *parent, Note* note, noteItem size) : pare
     QIcon icon(":/icon/appicon.ico");
     this->setWindowIcon(icon);
 
+    setAttribute(Qt::WA_DeleteOnClose);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     // Disable window border
     setWindowFlags(Qt::FramelessWindowHint);

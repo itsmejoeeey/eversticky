@@ -72,6 +72,10 @@ NoteWidget* NoteController::createNote()
     notes.push_back(note);
     noteCount++;
 
+    connect(note, &QWidget::destroyed, this, [this, note](){
+        noteDestroyed(note);
+    });
+
     return note;
 }
 
@@ -82,6 +86,10 @@ NoteWidget* NoteController::createNote(Note* note_model)
    notes.push_back(note);
    noteCount++;
 
+   connect(note, &QWidget::destroyed, this, [this, note](){
+       noteDestroyed(note);
+   });
+
    return note;
 }
 NoteWidget* NoteController::createNote(Note* note_model, noteItem size)
@@ -90,7 +98,19 @@ NoteWidget* NoteController::createNote(Note* note_model, noteItem size)
    notes.push_back(note);
    noteCount++;
 
+   connect(note, &QWidget::destroyed, this, [this, note](){
+       noteDestroyed(note);
+   });
+
    return note;
+}
+
+void NoteController::noteDestroyed(NoteWidget *note)
+{
+    auto it = std::find(notes.begin(), notes.end(), note);
+    // Remove the destroyed widget from the vector if it exists
+    if (it != notes.end())
+        notes.erase(it);
 }
 
 void NoteController::login()
