@@ -18,7 +18,7 @@
 /*
  *  Main keyhandler
  */
-function handleKeyDownEvent(window, content, event)
+function handleKeyDownEvent(event)
 {
     const selection = window.getSelection();
 

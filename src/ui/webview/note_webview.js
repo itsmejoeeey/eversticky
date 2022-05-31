@@ -64,11 +64,7 @@ function main()
             resizeObserver.observe(content);
 
             // Watch for selection changes
-            document.addEventListener("selectionchange", function(event)
-            {
-                const selection = window.getSelection();
-                checkCaretYPosChanged(selection);
-            });
+            document.addEventListener("selectionchange", selectionChangeEvent);
 
 
             /*
@@ -85,17 +81,10 @@ function main()
 
             // Attached to window instead of #en-note to ensure we always
             // get the event (regardless of what's explicitly focussed).
-            window.addEventListener("keydown", function(event)
-            {
-                handleKeyDownEvent(window, content, event);
-            });
+            window.addEventListener("keydown", handleKeyDownEvent);
 
             // Disable note zoom
-            window.addEventListener("wheel", function(event)
-            {
-                if(event.ctrlKey)
-                    event.preventDefault();
-            }, { passive: false });
+            window.addEventListener("wheel", wheelEvent, { passive: false });
         });
 
 
@@ -110,19 +99,26 @@ function main()
  */
 function checkboxAddEventListener(checkbox)
 {
-    checkbox.addEventListener("click", function(event) {
-        if(event.currentTarget.checked) {
-            checkbox.removeAttribute('checked');
-        } else {
-            checkbox.setAttribute('checked', 'true');
-        }
-    });
+    checkbox.addEventListener("click", checkboxClickEvent);
 
     // Don't allow right-clicking on checkboxes
-    checkbox.addEventListener("contextmenu", function(event) {
-        event.preventDefault();
-        return;
-    });
+    checkbox.addEventListener("contextmenu", checkboxContextMenuEvent);
+}
+
+function checkboxClickEvent(event)
+{
+    let checkbox = event.currentTarget;
+    if(checkbox.checked) {
+        checkbox.removeAttribute('checked');
+    } else {
+        checkbox.setAttribute('checked', 'true');
+    }
+}
+
+function checkboxContextMenuEvent(event)
+{
+    event.preventDefault();
+    return;
 }
 
 function checkCaretYPosChanged(selection)
@@ -150,4 +146,17 @@ function domChanged()
     // XMLSerializer needed to ensure string is valid XML
     // Otherwise, for example, .outerHTML returns <br> instead of <br/>
     parentWebEngine.domChanged(new XMLSerializer().serializeToString(content));
+}
+
+function selectionChangeEvent(event)
+{
+    const selection = window.getSelection();
+    checkCaretYPosChanged(selection);
+}
+
+function wheelEvent(event)
+{
+    if(event.ctrlKey)
+        event.preventDefault();
+        return;
 }
