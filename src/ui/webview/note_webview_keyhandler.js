@@ -44,9 +44,9 @@ function handleKeyDownEvent(event)
             selectionParent = selectionParent.parentNode;
         }
 
-        // If selection is inside an element that has a checkbox, we want to insert and focus
+        // If selection is inside an element that starts with a checkbox, we want to insert and focus
         // a checkbox on a new line.
-        if(checkFirstChildNodeMatchesSelector(selectionParent, "input.en-todo"))
+        if(checkNestedFirstChildMatchesSelector(selectionParent, "input.en-todo"))
         {
             handleReturnOnCheckbox(event, selection, selectionParent);
         }
@@ -60,63 +60,16 @@ function handleKeyDownEvent(event)
 
 function handleReturnOnCheckbox(event, selection, selectionParent)
 {
-    // Do nothing if user does a "SHIFT+ENTER"
+    // Do default behaviour if user does a "SHIFT+ENTER"
     if(event.shiftKey) {
-        event.preventDefault();
         return;
     }
 
-    const currentSelectionOffset = selection.getRangeAt(0).startOffset;
-    let cursorPos = selection.anchorOffset;
-    let textContent = selectionParent.textContent.trim();
-    let contentsBeforeCursor = textContent.substring(0, cursorPos);
-    let contentsAfterCursor = textContent.substring(cursorPos, textContent.length);
-
-    let newCheckboxParent;
-
-    // Copy the current checkbox div. This helps to preserve styles.
-    let checkboxElement = selectionParent.innerHTML;
-
-    if(selectionParent.parentNode.parentNode.tagName === 'UL')
-    {
-        // Traverse to the 'LI' parent node;
-        selectionParent = selectionParent.parentNode;
-
-        // If 'ENTER' pressed on empty checkbox element, split the parent 'UL' and insert a newline.
-        if(checkIfEmptyTextContent(selectionParent))
-        {
-            // Insert new empty div between unordered lists
-            let newEmptyDiv = document.createElement("DIV");
-            newEmptyDiv.innerHTML = "<br>";
-            let ulElement = selectionParent.parentNode;
-            ulElement.parentNode.insertBefore(newEmptyDiv, ulElement.nextSibling);
-
-            // Move following list elements to a new unordered list after the empty div
-            let newUlElement = document.createElement("UL");
-            while (x = selectionParent.nextElementSibling) newUlElement.appendChild(x);
-            ulElement.parentNode.insertBefore(newUlElement, newEmptyDiv.nextSibling);
-
-            selectionParent.remove();
-
-            // Place cursor in the new empty div
-            let newSelection = document.createRange();
-            newSelection.setStart(newEmptyDiv, 0);
-            selection.removeAllRanges();
-            selection.addRange(newSelection);
-
-            event.preventDefault();
-            return;
-        }
-        // Otherwise insert a new checkbox list element
-        else {
-            // Use the same element tag to contain the new checkbox
-            newCheckboxParent = document.createElement("LI");
-            // When a child of 'LI' element, checkbox should be contained by a 'div'
-            newCheckboxParent.innerHTML = "<div>" + checkboxElement + "</div>";
-        }
-    }
     // If checkbox is not inside an unordered-list, migrate the block of checkboxes to one
-    else {
+    if(selectionParent.parentNode.parentNode.tagName !== 'UL')
+    {
+        const currentSelectionOffset = selection.getRangeAt(0).startOffset;
+
         let siblingElements = getSurroundingElementsWithFirstChildMatching(selectionParent, "input.en-todo");
 
         // Wrap the first checkbox row in an unordered-list, before adding the rest of the rows to the list.
@@ -133,44 +86,19 @@ function handleReturnOnCheckbox(event, selection, selectionParent)
         newSelection.setStart(getFirstDescendantTextNode(selectionParent), currentSelectionOffset);
         selection.removeAllRanges();
         selection.addRange(newSelection);
-
-        event.preventDefault();
-        return;
     }
-
-    // Update text content of the selection row and new checkbox list element
-    let selectionTextNode = getFirstDescendantTextNode(selectionParent)
-    selectionTextNode.nodeValue = contentsBeforeCursor;
-    //
-    let newTextNode = getFirstDescendantTextNode(newCheckboxParent);
-    newTextNode.nodeValue = contentsAfterCursor;
-
-    let zeroWidthCharInserted = false;
-    if(newTextNode.nodeValue == "") {
-        // WebKit doesn't allow placing a caret in an empty span/text node.
-        // Insert a zero-width Unicode char that gets selected on insertion (see: https://stackoverflow.com/a/14104166/3213602).
-        newTextNode.nodeValue = '\u200B';
-        zeroWidthCharInserted = true;
+    // If return pressed on empty checkbox element, insert a newline without the checkbox + unordered-list.
+    else if(checkIfEmptyTextContent(selectionParent))
+    {
+        document.execCommand('delete', false); // delete checkbox element
+        document.execCommand('insertUnorderedList', false); // toggle unordered list
     }
-
-    // Insert new checkbox row
-    selectionParent.parentNode.insertBefore(newCheckboxParent, selectionParent.nextSibling);
-
-    // Setup new checkbox default state + events
-    let newCheckboxInput = newCheckboxParent.querySelector("input.en-todo");
-    newCheckboxInput.removeAttribute('checked');
-    checkboxAddEventListener(newCheckboxInput);
-
-    // Create a new selection after the new checkbox
-    let newSelection = document.createRange();
-    newSelection.setStart(newTextNode, 0)
-    // Select zero-width Unicode char if inserted
-    if(zeroWidthCharInserted) {
-        newSelection.setEnd(newTextNode, 1);
+    // Otherwise just insert a checkbox on a newline.
+    else
+    {
+        document.execCommand('insertParagraph', false);
+        document.execCommand('insertHTML', false, '<input class=\"en-todo\" src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" type=\"image\" />');
     }
-
-    selection.removeAllRanges();
-    selection.addRange(newSelection);
 
     event.preventDefault();
     return;

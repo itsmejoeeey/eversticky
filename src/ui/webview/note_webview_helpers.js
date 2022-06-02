@@ -33,6 +33,17 @@ function checkFirstChildNodeMatchesSelector(node, selector)
     return (firstChild.nodeType !== Node.TEXT_NODE && firstChild.matches(selector))
 }
 
+// Check if selector matches any nodes that are the first child (descending from node).
+function checkNestedFirstChildMatchesSelector(node, selector)
+{
+    let result = checkFirstChildNodeMatchesSelector(node, selector);
+    if(!result && node.childNodes.length > 0) {
+        return checkNestedFirstChildMatchesSelector(node.childNodes[0], selector);
+    } else {
+        return result;
+    }
+}
+
 function checkIfEmptyTextContent(node)
 {
     let textContent = node.textContent;
