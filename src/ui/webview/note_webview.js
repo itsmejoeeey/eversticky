@@ -55,6 +55,22 @@ function main()
         // Handler for signal updateInnerHtml() from JsInterface
         parentWebEngine.updateInnerHtml.connect(function(text)
         {
+            // Apply the html text to a temporary element and retreive it to reconcile differences when comparing
+            // to the current html. This ensures br and input elements are rendered the same way (without the trailing slash).
+            temporaryElement = document.createElement('body');
+            temporaryElement.innerHTML = text;
+            text = temporaryElement.innerHTML;
+
+            // Remove whitespace characters between tags
+            let regex = /(?<=\>)\s+(?=\<)/g;
+            text = text.replace(regex, '');
+
+            // If (after the above formatting) they are the same, don't replace the body. This allows the undo history to prevail.
+            if(text === document.body.innerHTML) {
+                return;
+            }
+
+
             // Replace body with new note
             document.body.innerHTML = text;
 
