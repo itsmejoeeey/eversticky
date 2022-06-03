@@ -2,7 +2,7 @@ TEMPLATE = app
 TARGET = eversticky
 
 DEFINES += \
-    APP_VERSION=\\\"0.95.2\\\" \
+    APP_VERSION=\\\"0.96.0\\\" \
     \
     ## API_DOMAIN
     # Can be either 'www.evernote.com' or 'sandbox.evernote.com' for testing
