@@ -145,10 +145,14 @@ std::vector<GuidMap> NoteSyncController::syncChanges()
             // *- CREATE note -*
             if(item.type == "CREATE") {
                 qevercloud::Guid createdNoteGuid = syncCreateNote(item.note);
-                changes.push_back(GuidMap({
+
+                GuidMap change = {
                     .local_guid = item.note.guid,
                     .official_guid = createdNoteGuid
-                }));
+                };
+                changes.push_back(change);
+                Cache::updateGuidInNotesTable(change.local_guid, change.official_guid);
+
                 createdNotes++;
             }
             // *- UPDATE note -*

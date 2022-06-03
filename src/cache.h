@@ -68,6 +68,7 @@ public:
     static void deleteFromNotesTable(qevercloud::Guid guid);
     static void insertNotesTable(QString guid, int screens, int res_x, int res_y, int pos_x, int pos_y, int size_x, int size_y);
     static noteItem retrieveFromNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y);
+    static void updateGuidInNotesTable(qevercloud::Guid oldGuid, qevercloud::Guid newGuid);
 };
 
 #endif // CACHE_H

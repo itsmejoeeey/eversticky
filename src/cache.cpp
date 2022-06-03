@@ -330,6 +330,27 @@ void Cache::insertNotesTable(qevercloud::Guid guid, int screens, int res_x, int 
     }
 }
 
+void Cache::updateGuidInNotesTable(qevercloud::Guid oldGuid, qevercloud::Guid newGuid)
+{
+    QSqlDatabase db = openDatabase();
+
+    QSqlQuery query1(db);
+    query1.prepare("SELECT id FROM notes WHERE guid == :guid");
+    query1.bindValue(":guid", oldGuid.toUtf8().constData());
+    query1.exec();
+
+
+    if(query1.next()) {
+        int rowId = query1.value(0).toInt();
+
+        QSqlQuery query2(db);
+        query2.prepare("UPDATE notes SET guid = :guid WHERE id=:id");
+        query2.bindValue(":guid", newGuid.toUtf8().constData());
+        query2.bindValue(":id", rowId);
+        query2.exec();
+    }
+}
+
 noteItem Cache::retrieveFromNotesTable(qevercloud::Guid guid, int screens, int res_x, int res_y)
 {
     QSqlDatabase db = openDatabase();
