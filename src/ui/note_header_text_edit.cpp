@@ -39,14 +39,20 @@ void NoteHeaderTextEdit::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu *menu = createStandardContextMenu();
 
+    QAction *lastSeparator;
     foreach (QAction *action, menu->actions()) {
         // Remove 'shortcut' text from action to match context menu of note body
         QString actionText = action->text();
         action->setText(actionText.split("\t").at(0));
 
         action->setIcon(QIcon());
-        action->setIconVisibleInMenu(false);
+
+        if(action->isSeparator()) {
+            lastSeparator = action;
+        }
     }
+    // Remove the last separator (between 'Delete' and 'Select All') to match context menu of note body
+    menu->removeAction(lastSeparator);
 
     menu->exec(event->globalPos());
     delete menu;
