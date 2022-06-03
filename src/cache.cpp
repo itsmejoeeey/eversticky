@@ -210,6 +210,16 @@ void Cache::insertQueueTable(Note note)
     }
 }
 
+void Cache::removeGuidFromQueueTable(qevercloud::Guid guid)
+{
+    QSqlDatabase db = openDatabase();
+
+    QSqlQuery query(db);
+    query.prepare("DELETE FROM queue WHERE guid=:guid");
+    query.bindValue(":guid", guid.toUtf8().constData());
+    query.exec();
+}
+
 std::vector<queueItem> Cache::retrieveAllFromQueueTable()
 {
     QSqlDatabase db = openDatabase();

@@ -61,6 +61,7 @@ public:
     static void deleteFromQueueTable(int id);
     static void emptyQueueTable();
     static void insertQueueTable(Note note);
+    static void removeGuidFromQueueTable(qevercloud::Guid guid);
     static std::optional<queueItem> retrieveFromQueueTable(qevercloud::Guid guid);
     static std::vector<queueItem> retrieveAllFromQueueTable();
     static std::vector<queueItem> retrieveNewFromQueueTable();

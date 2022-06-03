@@ -205,13 +205,16 @@ void NoteWidget::contentTextChanged(QString newText)
     // Convert back to ENML format
     newText = NoteFormatter(newText).convertToEML();
 
+    std::optional<Note> syncedNote = Cache::retrieveFromSyncTable(this->note->guid);
     // If note content has changed, add it to the queue
-    if(note->content != newText) {
-        if(note->changed == false) {
-            note->changed = true;
-        }
+    if(syncedNote->content != newText) {
+        note->changed = true;
         note->content = newText;
         Cache::insertQueueTable(*note);
+    } else {
+        note->changed = false;
+        note->content = newText;
+        Cache::removeGuidFromQueueTable(this->note->guid);
     }
 }
 
