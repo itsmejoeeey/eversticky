@@ -39,8 +39,11 @@ function handleKeyDownEvent(event)
         // Get the parent element at the start of the selection
         let selectionParent = selection.getRangeAt(0).startContainer;
 
-        // Traverse out of span or text nodes
-        while(selectionParent.tagName === 'SPAN' || selectionParent.nodeType === Node.TEXT_NODE) {
+        // Traverse out of span, font or text nodes
+        while(selectionParent.tagName === 'SPAN' ||
+              selectionParent.tagName === 'FONT' ||
+              selectionParent.nodeType === Node.TEXT_NODE)
+        {
             selectionParent = selectionParent.parentNode;
         }
 
