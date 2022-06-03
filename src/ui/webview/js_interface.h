@@ -48,6 +48,11 @@ signals:
     void pageLoaded();
     void ensureWebviewCaretVisible(int cursorY);
 
+    void insertCheckbox();
+    void insertDivider();
+    void insertBulletedList();
+    void insertNumberedList();
+
 private:
     NoteWebview* m_Parent;
 };

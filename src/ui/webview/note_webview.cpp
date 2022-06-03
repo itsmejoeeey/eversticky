@@ -22,6 +22,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QApplication>
 #include <QDropEvent>
+#include <QMenu>
 #include <QScrollBar>
 #include <QTextBlock>
 #include <QThread>
@@ -147,4 +148,26 @@ bool NoteWebview::eventFilter(QObject*, QEvent *event)
     }
 
     return false;
+}
+
+void NoteWebview::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu *menu = page()->createStandardContextMenu();
+
+    QAction *separator = menu->insertSeparator(menu->actions()[0]);
+
+    QMenu *insertMenu = new QMenu("Insert");
+    QAction *insertCheckbox = insertMenu->addAction("Checkbox");
+    QAction *insertDivider = insertMenu->addAction("Divider line");
+    QAction *insertBulletedList = insertMenu->addAction("Bulleted list");
+    QAction *insertNumberedList = insertMenu->addAction("Numbered list");
+    connect(insertCheckbox, &QAction::triggered, jsInterface, &JsInterface::insertCheckbox);
+    connect(insertDivider, &QAction::triggered, jsInterface, &JsInterface::insertDivider);
+    connect(insertBulletedList, &QAction::triggered, jsInterface, &JsInterface::insertBulletedList);
+    connect(insertNumberedList, &QAction::triggered, jsInterface, &JsInterface::insertNumberedList);
+
+    menu->insertMenu(separator, insertMenu);
+
+    menu->exec(event->globalPos());
+    delete menu;
 }

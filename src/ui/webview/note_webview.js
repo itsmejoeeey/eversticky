@@ -88,6 +88,20 @@ function main()
         });
 
 
+        parentWebEngine.insertCheckbox.connect(function(){
+            insertCheckbox();
+        });
+        parentWebEngine.insertDivider.connect(function(){
+            insertDivider();
+        });
+        parentWebEngine.insertBulletedList.connect(function(){
+            insertBulletedList();
+        });
+        parentWebEngine.insertNumberedList.connect(function(){
+            insertNumberedList();
+        });
+
+
         // Notify JsInterface that initial DOM load is complete
         parentWebEngine.domLoaded();
     })
@@ -146,6 +160,26 @@ function domChanged()
     // XMLSerializer needed to ensure string is valid XML
     // Otherwise, for example, .outerHTML returns <br> instead of <br/>
     parentWebEngine.domChanged(new XMLSerializer().serializeToString(content));
+}
+
+function insertCheckbox()
+{
+    document.execCommand('insertHTML', false, '<input class=\"en-todo\" src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" type=\"image\" />');
+}
+
+function insertDivider()
+{
+    document.execCommand('insertHorizontalRule', false);
+}
+
+function insertBulletedList()
+{
+    document.execCommand('insertUnorderedList', false);
+}
+
+function insertNumberedList()
+{
+    document.execCommand('insertOrderedList', false);
 }
 
 function selectionChangeEvent(event)

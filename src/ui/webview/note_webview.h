@@ -44,6 +44,9 @@ signals:
     void ensureWebviewCaretVisible(int caretY);
     void noteLoaded();
 
+protected:
+    void contextMenuEvent(QContextMenuEvent *event);
+
 private:
     QWebChannel* channel;
     JsInterface* jsInterface;

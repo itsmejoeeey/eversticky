@@ -97,7 +97,7 @@ function handleReturnOnCheckbox(event, selection, selectionParent)
     else
     {
         document.execCommand('insertParagraph', false);
-        document.execCommand('insertHTML', false, '<input class=\"en-todo\" src=\"data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=\" type=\"image\" />');
+        insertCheckbox();
     }
 
     event.preventDefault();
